@@ -1,0 +1,41 @@
+/* slidingText.css */
+.sliding-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2rem;
+  color: white;
+  text-align: center;
+}
+.sliding-text p {
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+}
+.sliding-text.slideIn {
+  animation: slideIn 1s forwards;
+}
+.sliding-text.slideInRight {
+  animation: slideInRight 1s forwards;
+}
+@keyframes slideIn {
+  from {
+    transform: translate(-50%, -50%) translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes slideInRight {
+  from {
+    transform: translate(-50%, -50%) translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) translateX(0);
+    opacity: 1;
+  }
+}
