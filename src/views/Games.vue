@@ -37,6 +37,13 @@
           <p>Daily Challenge: Play {{ challengeGoal - gamesPlayed }} more games today!</p>
         </section>
 
+        <!-- ✨ Floating Points Animation -->
+        <transition name="points-popup" @after-leave="resetPointsEarned">
+          <div v-if="pointsEarned" class="points-popup">
+            +{{ pointsEarned }} Points!
+          </div>
+        </transition>
+
         <section class="games-grid">
           <div
             v-for="game in games"
@@ -77,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 import PuzzledGame from '../components/PuzzledGame.vue';
 import TriviaGame from '../components/TriviaGame.vue';
@@ -113,6 +120,12 @@ const gamesPlayed = ref(Number(localStorage.getItem('gamesPlayed')) || 0);
 const challengeGoal = 3;
 const progress = ref((gamesPlayed.value / challengeGoal) * 100);
 
+// ✨ Animation state
+const pointsEarned = ref<number | null>(null);
+const resetPointsEarned = () => {
+  pointsEarned.value = null;
+};
+
 const connectMetaMask = async () => {
   if (walletAddress.value) {
     walletAddress.value = null;
@@ -144,18 +157,53 @@ const selectGame = (game: Game) => {
 const handleGameWin = () => {
   points.value += 10;
   gamesPlayed.value += 1;
+  pointsEarned.value = 10;
   progress.value = Math.min((gamesPlayed.value / challengeGoal) * 100, 100);
   localStorage.setItem('points', points.value.toString());
   localStorage.setItem('gamesPlayed', gamesPlayed.value.toString());
 };
 
-const handleSportsGameWin = (predictions: Record<number, string>) => {
+const handleSportsGameWin = () => {
   points.value += 10;
   gamesPlayed.value += 1;
+  pointsEarned.value = 10;
   progress.value = Math.min((gamesPlayed.value / challengeGoal) * 100, 100);
   localStorage.setItem('points', points.value.toString());
   localStorage.setItem('gamesPlayed', gamesPlayed.value.toString());
 };
 </script>
 
-<style scoped src="@/styles/games.css"></style>
+<style src="@/assets/styles/games.css"></style>
+
+<!-- ✨ Floating Points Animation CSS -->
+<style scoped>
+.points-popup {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2rem;
+  color: #00ffc6;
+  text-shadow: 0 0 10px #00ffc6;
+  font-weight: bold;
+  z-index: 999;
+  pointer-events: none;
+}
+
+.points-popup-enter-active,
+.points-popup-leave-active {
+  transition: all 1.2s ease;
+}
+
+.points-popup-enter-from,
+.points-popup-leave-to {
+  opacity: 0;
+  transform: translate(-50%, 20%);
+}
+
+.points-popup-enter-to,
+.points-popup-leave-from {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+}
+</style>

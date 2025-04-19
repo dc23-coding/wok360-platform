@@ -1,0 +1,152 @@
+.games {
+  display: flex;
+  min-height: 100vh;
+  background: #121212;
+  color: white;
+  position: relative;
+}
+
+.nav-orb-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.nav-orb {
+  background: #333;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 50%;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-orb.active {
+  background: #bb86fc;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.tablet-container {
+  width: 100%;
+  max-width: 800px;
+  background: #1e1e1e;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+}
+
+.wallet-container button {
+  background: #03dac5;
+  color: #121212;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.wallet-address {
+  margin-top: 1rem;
+  color: #03dac5;
+}
+
+.rewards-container {
+  margin-top: 2rem;
+}
+
+.progress-bar {
+  width: 100%;
+  background: #333;
+  height: 1rem;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+.progress-fill {
+  background: #bb86fc;
+  height: 100%;
+  width: var(--progress, 0%);
+  transition: width 0.3s ease;
+}
+
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.game-box {
+  background: #2a2a2a;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.game-box.active {
+  background: #bb86fc;
+  color: #121212;
+}
+
+/* Games Grid */
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+/* Each game box */
+.game-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  padding: 2rem 1rem;
+  border-radius: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.game-box:hover {
+  transform: translateY(-8px) scale(1.05);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2);
+}
+
+/* Active game selected */
+.game-box.active {
+  background: rgba(0, 255, 150, 0.2);
+  border-color: rgba(0, 255, 150, 0.5);
+  box-shadow: 0 0 15px rgba(0, 255, 150, 0.5);
+}
+
+/* Progress Bar Animation */
+.progress-bar {
+  background: rgba(255, 255, 255, 0.1);
+  height: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 1rem;
+  position: relative;
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, #00ffc6, #00d4ff);
+  height: 100%;
+  width: var(--progress, 0%);
+  transition: width 0.8s ease;
+}

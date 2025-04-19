@@ -1,339 +1,271 @@
-<!-- components/FortuneGame.vue -->
 <template>
-    <div class="fortune-game">
-      <h3>Fortune</h3>
-      <!-- Draw Button -->
-      <div class="draw-container">
-        <button
-          @click="drawOutcome"
-          class="draw-button"
-          :disabled="isDrawing || gameWon || gameOver"
-        >
-          Fortune Draw
-        </button>
-        <div v-if="drawResult" class="draw-result">
-          {{ drawResult.label }}
-        </div>
-      </div>
-      <!-- Phrase -->
-      <div class="phrase">
-        <div
-          v-for="(letter, index) in displayPhrase"
-          :key="index"
-          class="letter"
-          :class="{ revealed: letter !== '_' }"
-        >
-          {{ letter }}
-        </div>
-      </div>
-      <!-- Keyboard -->
-      <div class="keyboard">
-        <button
-          v-for="letter in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')"
-          :key="letter"
-          @click="guessLetter(letter)"
-          :class="{ used: usedLetters[letter] }"
-          :disabled="!!isDrawing || !!gameWon || !!gameOver || !!usedLetters[letter] || !!drawResult"
+  <div class="fortune-game">
+    <h2>🔮 Fortune Game</h2>
 
-        >
-          {{ letter }}
-        </button>
-      </div>
-      <!-- Score & Status -->
-      <div class="status">
-        <p>Score: {{ score }} points</p>
-        <p>Wrong Guesses: {{ wrongCount }}/6</p>
-        <p v-if="gameWon">You won! +{{ score + 1000 }} points</p>
-        <p v-else-if="gameOver">Game over! Answer: {{ targetPhrase }}</p>
-        <button v-if="gameWon || gameOver" @click="resetGame" class="play-again">
-          Play Again
-        </button>
-      </div>
+    <!-- Category Display -->
+    <p v-if="category">Category: <strong>{{ category }}</strong></p>
+
+    <!-- Puzzle Display -->
+    <div class="puzzle-display">
+      <span v-for="(char, index) in displayedPuzzle" :key="index" class="puzzle-letter">
+        {{ guessedLetters.includes(char.toUpperCase()) ? char : (char === ' ' ? ' ' : '_') }}
+      </span>
     </div>
-  </template>
-  
-  <script setup lang="ts">
-  import { ref, onMounted } from 'vue';
-  
-  const emit = defineEmits(['win']);
-  
-  interface DrawOutcome {
-    label: string;
-    value: number | string;
+
+    <!-- Guess Logs -->
+    <div class="guess-logs">
+      <p><strong>❌ Wrong Guesses:</strong> {{ wrongGuesses.join(', ') || 'None yet' }}</p>
+      <p><strong>🤖 AI Guesses:</strong> {{ aiGuesses.join(', ') || 'None yet' }}</p>
+    </div>
+
+    <!-- Spin Wheel -->
+    <button @click="spinWheel" :disabled="!isPlayerTurn || wheelSpinning || gameOver">🎡 Spin the Wheel</button>
+    <p v-if="wheelResult">Result: <strong>{{ wheelResultText }}</strong></p>
+
+    <!-- Player Letter Guess -->
+    <div v-if="isPlayerTurn && wheelResult && wheelResult.type === 'points'">
+      <input v-model="letterGuess" maxlength="1" placeholder="Guess a letter" />
+      <button @click="guessLetter">Guess</button>
+    </div>
+
+    <!-- AI Turn Indicator -->
+    <p v-if="!isPlayerTurn && !gameOver">🤖 AI is thinking...</p>
+
+    <!-- Scoreboard -->
+    <div class="scoreboard">
+      <p>🧍 You: {{ playerScore }} pts (Strikes: {{ playerStrikes }})</p>
+      <p>🤖 AI: {{ aiScore }} pts</p>
+    </div>
+    <p><strong>Current Turn:</strong> {{ isPlayerTurn ? '🧍 You' : '🤖 AI' }}</p>
+
+    <!-- Solve Puzzle -->
+    <div v-if="isPlayerTurn && !gameOver">
+      <input v-model="playerSolution" placeholder="Solve the puzzle" />
+      <button @click="submitSolution">Submit Solution</button>
+    </div>
+
+    <!-- Game Over -->
+    <p v-if="gameOver"><strong>{{ winner }} wins!</strong></p>
+    <p v-if="gameOver && currentPuzzle"><strong>🧩 The answer was:</strong> {{ currentPuzzle }}</p>
+    <button v-if="gameOver" @click="resetGame">🔁 Play Again</button>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
+
+// Categories & Puzzles
+const categories = [
+  'Truck Stop Lingo',
+  'Movie Titles',
+  'U.S. State Capitals',
+  '90s Slang',
+  'Song Lyrics',
+  'AI & Tech Terms',
+  'Fast Food Favorites',
+];
+
+const puzzles: Record<string, string[]> = {
+  'Truck Stop Lingo': ['HAMMER DOWN', 'CHICKEN COOP', '10 FOUR'],
+  'Movie Titles': ['THE GODFATHER', 'FORREST GUMP'],
+  'U.S. State Capitals': ['ATLANTA', 'AUSTIN', 'SACRAMENTO'],
+  '90s Slang': ['BOOYAH', 'ALL THAT', 'TALK TO THE HAND'],
+  'Song Lyrics': ['HIT ME BABY ONE MORE TIME', 'I WANT IT THAT WAY'],
+  'AI & Tech Terms': ['MACHINE LEARNING', 'NEURAL NETWORK'],
+  'Fast Food Favorites': ['BIG MAC', 'CRUNCHWRAP SUPREME'],
+};
+
+// Game State
+const category = ref('');
+const currentPuzzle = ref('');
+const guessedLetters = ref<string[]>([]);
+const aiGuesses = ref<string[]>([]);
+const letterGuess = ref('');
+const wheelResult = ref<{ type: string; value?: number } | null>(null);
+
+const isPlayerTurn = ref(true);
+const playerScore = ref(0);
+const aiScore = ref(0);
+const playerStrikes = ref(0);
+const maxStrikes = 5;
+const playerSolution = ref('');
+const gameOver = ref(false);
+const winner = ref('');
+const wheelSpinning = ref(false);
+
+const displayedPuzzle = computed(() => currentPuzzle.value.split(''));
+
+const wrongGuesses = computed(() =>
+  guessedLetters.value.filter((l) => !currentPuzzle.value.includes(l))
+);
+
+const wheelResultText = computed(() => {
+  if (!wheelResult.value) return '';
+  return wheelResult.value.type === 'points'
+    ? `${wheelResult.value.value} points`
+    : wheelResult.value.type === 'bankrupt'
+    ? '💸 Bankrupt!'
+    : '⛔ Lose Turn';
+});
+
+// Setup
+const chooseCategory = () => {
+  category.value = categories[Math.floor(Math.random() * categories.length)];
+  const options = puzzles[category.value];
+  currentPuzzle.value = options[Math.floor(Math.random() * options.length)];
+};
+
+// Wheel Spin
+const spinWheel = () => {
+  wheelSpinning.value = true;
+  setTimeout(() => {
+    const outcomes = [
+      { type: 'points', value: 100 },
+      { type: 'points', value: 200 },
+      { type: 'points', value: 500 },
+      { type: 'bankrupt' },
+      { type: 'loseTurn' },
+    ];
+    wheelResult.value = outcomes[Math.floor(Math.random() * outcomes.length)];
+    wheelSpinning.value = false;
+
+    if (wheelResult.value.type === 'bankrupt') {
+      playerScore.value = 0;
+      endTurn();
+    } else if (wheelResult.value.type === 'loseTurn') {
+      playerStrikes.value++;
+      if (playerStrikes.value >= maxStrikes) {
+        gameOver.value = true;
+        winner.value = '🤖 AI';
+      } else {
+        endTurn();
+      }
+    }
+  }, 1000);
+};
+
+// Player Guess
+const guessLetter = () => {
+  const letter = letterGuess.value.toUpperCase();
+  if (!letter || guessedLetters.value.includes(letter)) return;
+
+  guessedLetters.value.push(letter);
+
+  if (currentPuzzle.value.includes(letter)) {
+    const count = currentPuzzle.value.split('').filter((l) => l === letter).length;
+    playerScore.value += (wheelResult.value?.value || 0) * count;
+
+    if (checkPuzzleComplete()) {
+      gameOver.value = true;
+      winner.value = '🧍 You';
+    }
+  } else {
+    playerStrikes.value++;
+    if (playerStrikes.value >= maxStrikes) {
+      gameOver.value = true;
+      winner.value = '🤖 AI';
+    } else {
+      endTurn();
+    }
   }
-  
-  const drawOutcomes: DrawOutcome[] = [
-    { label: '100 Points', value: 100 },
-    { label: '200 Points', value: 200 },
-    { label: '500 Points', value: 500 },
-    { label: '1000 Points', value: 1000 },
-    { label: 'Double Score', value: '2x' },
-    { label: 'Lose Turn', value: 'lose' },
-    { label: 'Bankrupt', value: 'bankrupt' },
-    { label: 'Free Guess', value: 'free' },
-  ];
-  
-  const phrases = ['HELLO', 'GAME SHOW', 'FORTUNE', 'SPIN WHEEL'];
-  const targetPhrase = ref('');
-  const displayPhrase = ref<string[]>([]);
-  const usedLetters = ref<Record<string, string>>({});
-  const wrongCount = ref(0);
-  const score = ref(0);
-  const gameWon = ref(false);
-  const gameOver = ref(false);
-  const isDrawing = ref(false);
-  const drawResult = ref<DrawOutcome | null>(null);
-  
-  const initGame = () => {
-    targetPhrase.value = phrases[Math.floor(Math.random() * phrases.length)];
-    displayPhrase.value = targetPhrase.value
-      .split('')
-      .map((char) => (char === ' ' ? ' ' : '_'));
-    usedLetters.value = {};
-    wrongCount.value = 0;
-    score.value = 0;
-    gameWon.value = false;
-    gameOver.value = false;
-    isDrawing.value = false;
-    drawResult.value = null;
-    console.log('Fortune initialized, phrase:', targetPhrase.value);
-  };
-  
-  const drawOutcome = () => {
-    if (isDrawing.value) return;
-    isDrawing.value = true;
-  
-    const randomIndex = Math.floor(Math.random() * drawOutcomes.length);
-    drawResult.value = drawOutcomes[randomIndex];
-  
-    setTimeout(() => {
-      isDrawing.value = false;
-      if (drawResult.value) {
-        console.log('Draw result:', drawResult.value.label);
-        if (drawResult.value.value === 'bankrupt') {
-          score.value = 0;
-          console.log('Bankrupt, score reset');
-        } else if (drawResult.value.value === 'lose') {
-          wrongCount.value++;
-          console.log('Lose turn, wrong:', wrongCount.value);
-          checkGameOver();
-          drawResult.value = null;
-        } else if (drawResult.value.value === 'free') {
-          console.log('Free guess');
-        }
-      }
-    }, 500);
-  };
-  
-  const guessLetter = (letter: string) => {
-    if (
-      isDrawing.value ||
-      gameWon.value ||
-      gameOver.value ||
-      usedLetters.value[letter] ||
-      !drawResult.value
-    )
-      return;
-  
-    usedLetters.value[letter] = targetPhrase.value.includes(letter) ? 'correct' : 'absent';
-    let letterCount = 0;
-  
-    if (targetPhrase.value.includes(letter)) {
-      displayPhrase.value = targetPhrase.value.split('').map((char, i) => {
-        if (char === letter) {
-          letterCount++;
-          return char;
-        }
-        return displayPhrase.value[i];
-      });
-      if (typeof drawResult.value.value === 'number') {
-        score.value += drawResult.value.value * letterCount;
-      } else if (drawResult.value.value === '2x') {
-        score.value *= 2;
-      } else if (drawResult.value.value === 'free') {
-        // Free guess: No points
-      }
-      console.log('Correct letter:', letter, 'score:', score.value);
-    } else if (drawResult.value.value !== 'free') {
-      wrongCount.value++;
-      console.log('Wrong letter:', letter, 'wrong:', wrongCount.value);
-    }
-  
-    drawResult.value = null;
-    checkGameStatus();
-  };
-  
-  const checkGameStatus = () => {
-    if (!displayPhrase.value.includes('_')) {
-      gameWon.value = true;
-      score.value += 1000;
-      emit('win');
-      console.log('Game won, score:', score.value);
-    } else if (wrongCount.value >= 6) {
+
+  letterGuess.value = '';
+};
+
+// Puzzle Solve
+const submitSolution = () => {
+  if (playerSolution.value.toUpperCase() === currentPuzzle.value) {
+    gameOver.value = true;
+    winner.value = '🧍 You';
+    playerScore.value += 1000;
+  } else {
+    playerStrikes.value++;
+    if (playerStrikes.value >= maxStrikes) {
       gameOver.value = true;
-      console.log('Game over');
+      winner.value = '🤖 AI';
+    } else {
+      endTurn();
     }
-  };
-  
-  const checkGameOver = () => {
-    if (wrongCount.value >= 6) {
+  }
+  playerSolution.value = '';
+};
+
+// End Turn
+const endTurn = () => {
+  isPlayerTurn.value = false;
+  setTimeout(aiTurn, 1200);
+};
+
+// AI Logic
+const aiTurn = () => {
+  if (gameOver.value) return;
+
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const available = alphabet.split('').filter((l) => !guessedLetters.value.includes(l));
+  const guess = available[Math.floor(Math.random() * available.length)];
+
+  guessedLetters.value.push(guess);
+  aiGuesses.value.push(guess);
+
+  const count = currentPuzzle.value.split('').filter((l) => l === guess).length;
+
+  if (count > 0) {
+    aiScore.value += count * 100;
+    if (checkPuzzleComplete()) {
       gameOver.value = true;
-      console.log('Game over from lose turn');
+      winner.value = '🤖 AI';
+    } else {
+      setTimeout(aiTurn, 1000); // AI guesses again
     }
-  };
-  
-  const resetGame = () => {
-    initGame();
-    console.log('Fortune reset');
-  };
-  
-  onMounted(() => {
-    initGame();
-    console.log('FortuneGame.vue mounted');
+  } else {
+    isPlayerTurn.value = true;
+    wheelResult.value = null;
+  }
+};
+
+// Check Win Condition
+const checkPuzzleComplete = () => {
+  return currentPuzzle.value.split('').every((char) => {
+    return char === ' ' || guessedLetters.value.includes(char);
   });
-  </script>
-  
-  <style scoped>
-  .fortune-game {
-    text-align: center;
-    color: #fff;
-  }
-  .fortune-game h3 {
-    color: #bb86fc;
-    margin-bottom: 1rem;
-  }
-  .draw-container {
-    margin: 0 auto 2rem;
-  }
-  .draw-button {
-    background: #bb86fc;
-    color: #121212;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: transform 0.3s;
-  }
-  .draw-button:hover {
-    transform: scale(1.05);
-    background: #6200ea;
-  }
-  .draw-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  .draw-result {
-    margin-top: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: #1a1a1a;
-    border: 2px solid #bb86fc;
-    border-radius: 8px;
-    color: #bb86fc;
-    font-weight: bold;
-    animation: fadeIn 0.5s ease-in;
-  }
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: scale(0.8);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-  .phrase {
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-    margin: 1rem 0;
-  }
-  .letter {
-    width: 40px;
-    height: 40px;
-    border-bottom: 2px solid #333;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    text-transform: uppercase;
-  }
-  .letter.revealed {
-    border-color: #bb86fc;
-    color: #bb86fc;
-  }
-  .keyboard {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 5px;
-    max-width: 600px;
-    margin: 1rem auto;
-  }
-  .keyboard button {
-    background: #333;
-    color: #fff;
-    border: none;
-    padding: 0.5rem;
-    width: 40px;
-    border-radius: 4px;
-    cursor: pointer;
-    text-transform: uppercase;
-  }
-  .keyboard button.used.correct {
-    background: #bb86fc;
-  }
-  .keyboard button.used.absent {
-    background: #555;
-  }
-  .keyboard button:not(.used):hover {
-    background: #444;
-  }
-  .keyboard button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  .status {
-    margin-top: 1rem;
-  }
-  .status p {
-    color: #bb86fc;
-    margin: 0.5rem 0;
-  }
-  .play-again {
-    background: #bb86fc;
-    color: #121212;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: transform 0.3s, background 0.3s;
-  }
-  .play-again:hover {
-    transform: scale(1.05);
-    background: #6200ea;
-  }
-  @media (max-width: 768px) {
-    .letter {
-      width: 30px;
-      height: 30px;
-      font-size: 1.2rem;
-    }
-    .draw-result {
-      font-size: 0.9rem;
-    }
-  }
-  @media (max-width: 480px) {
-    .letter {
-      width: 25px;
-      height: 25px;
-      font-size: 1rem;
-    }
-    .draw-result {
-      font-size: 0.8rem;
-      padding: 0.4rem 0.8rem;
-    }
-  }
-  </style>
+};
+
+// Reset Game
+const resetGame = () => {
+  guessedLetters.value = [];
+  aiGuesses.value = [];
+  letterGuess.value = '';
+  playerSolution.value = '';
+  playerScore.value = 0;
+  aiScore.value = 0;
+  playerStrikes.value = 0;
+  isPlayerTurn.value = true;
+  wheelResult.value = null;
+  gameOver.value = false;
+  winner.value = '';
+  chooseCategory();
+};
+
+// Start Game
+onMounted(chooseCategory);
+</script>
+
+<style scoped>
+.fortune-game {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+}
+.puzzle-display {
+  font-size: 2rem;
+  letter-spacing: 0.5rem;
+  margin: 1rem 0;
+}
+.puzzle-letter {
+  display: inline-block;
+  width: 1.5rem;
+}
+.scoreboard, .guess-logs {
+  margin: 1rem 0;
+}
+</style>
