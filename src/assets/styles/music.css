@@ -1,253 +1,261 @@
 :root {
-    --bg-primary: #121212;
-    --bg-secondary: #333333;
-    --text-primary: #ffffff;
-    --text-secondary: #b3b3b3;
-    --accent: #87CEEB;
-    --error: #cf6679;
-    --success: #03dac6;
-  }
-  
-  /* Global Resets */
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  /* Fixed Border Design */
-/*  body::before,
-  body::after {
-    content: "";
-    position: fixed;
-    top: 0;
-    width: 250px;
-    height: 100vh;
-    background: linear-gradient(to bottom, rgba(187,134,252,0.2), rgba(3,218,198,0.2));
-    z-index: 10;
-  }
-  body::before { left: 0; }
-  body::after { right: 0; }
-  
-  @media (max-width: 1024px) {
-    body::before,
-    body::after { display: none; }
-  }
-  
-  /* Base Body Styles */
-  body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--bg-primary);
-    color: var(--text-secondary);
-    line-height: 1.6;
-  }
-  
-  /* Particle Background Container */
-  #particles-js {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -2;
-    pointer-events: none;
-    background: transparent;
-  }
-  
-  /* Header and Navigation */
-  header {
-    background-color: var(#000);
-    
-    padding: 1rem;
-    position: fixed;
-    width: 100%;
-    top: 0;
-    z-index: 100;
-  }
-  nav {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .logo img { height: 50px; }
-  .nav-links,
-  .quick-pick-menu {
-    display: flex;
-    list-style: none;
-    gap: 1rem;
-  }
-  .nav-links a,
-  .quick-pick-menu a {
-    color: var(--text-primary);
-    text-decoration: none;
-    font-weight: bold;
-  }
-  .nav-links a:hover,
-  .quick-pick-menu a:hover { color: var(--accent); }
-  
-  /* Main Content Container */
-  main {
-    margin-top: 6rem;
-    padding: 4rem 0;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  
-  /* Music Player Styles */
-  .music-player {
-    position: relative;  /* For absolute positioning of #pulse */
-    text-align: center;
-    margin: 2rem auto;
-    max-width: 800px;
-    padding: 1rem;
-    background-color: var(--bg-primary);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  #waveform {
-    margin: auto;
-    width: 80%;
-    height: 150px;
-    background-color: transparent!important;
-    border-radius: 8px;
-  }
-  
-  /* New position for the sun element (swap to planetary's original position) */
+  --bg-primary: #0d0d0d;
+  --bg-secondary: #1a1a1a;
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+  --accent: #87CEEB;
+  --accent-glow: #87ceebaa;
+  --error: #cf6679;
+  --success: #03dac6;
+  --glow: 0 0 15px rgba(135, 206, 235, 0.8);
+  --neon-pink: #ff007f;
+  --neon-purple: #bb86fc;
+  --neon-blue: #00ffff;
+}
+
+/* Global Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Base Body */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Optional Border Gradient (can be enabled if desired) */
+/*
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  width: 250px;
+  height: 100vh;
+  background: linear-gradient(to bottom, rgba(187,134,252,0.2), rgba(3,218,198,0.2));
+  z-index: 10;
+}
+body::before { left: 0; }
+body::after { right: 0; }
+
+@media (max-width: 1024px) {
+  body::before,
+  body::after { display: none; }
+}
+*/
+
+#particles-js {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  pointer-events: none;
+  background: transparent;
+}
+
+/* Header */
+header {
+  background-color: #000;
+  padding: 1rem;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--glow);
+}
+nav {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.logo img {
+  height: 50px;
+  filter: drop-shadow(0 0 5px var(--accent));
+}
+.nav-links,
+.quick-pick-menu {
+  display: flex;
+  list-style: none;
+  gap: 1rem;
+}
+.nav-links a,
+.quick-pick-menu a {
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+.nav-links a:hover,
+.quick-pick-menu a:hover {
+  color: var(--accent);
+  text-shadow: 0 0 5px var(--accent);
+}
+
+main {
+  margin-top: 6rem;
+  padding: 4rem 1rem;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Music Player */
+.music-player {
+  position: relative;
+  text-align: center;
+  margin: 2rem auto;
+  max-width: 800px;
+  padding: 1.5rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--accent-glow);
+  border-radius: 12px;
+  box-shadow: 0 0 25px var(--accent-glow);
+  backdrop-filter: blur(6px);
+}
+
+#waveform {
+  margin: auto;
+  width: 80%;
+  height: 150px;
+  background-color: transparent !important;
+  border-radius: 8px;
+}
+
+/* Now Playing */
+.now-playing {
+  margin-top: 1rem;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--text-primary);
+  text-shadow: 0 0 5px var(--accent);
+}
+
+/* Controls */
+.player-controls {
+  margin-top: 1.2rem;
+}
+.player-controls button {
+  background-color: var(--accent);
+  color: var(--bg-primary);
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  margin: 0 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 0 10px var(--accent-glow);
+  transition: all 0.3s ease;
+}
+.player-controls button:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+/* Track List */
+.track-list {
+  margin-top: 2rem;
+  list-style: none;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.track-list li {
+  background-color: var(--accent);
+  color: var(--bg-primary);
+  margin: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 0 10px var(--accent-glow);
+  transition: background 0.3s, transform 0.3s;
+}
+.track-list li:hover {
+  background-color: var(--neon-blue);
+  transform: scale(1.05);
+}
+
+/* Columns */
+.columns-container {
+  display: flex;
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 1rem;
+  flex-wrap: wrap;
+}
+.column {
+  flex: 1;
+  background-color: var(--bg-secondary);
+  padding: 1.2rem;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+.column.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Orbital Elements */
 .sun-group {
   position: absolute;
-  top: 60%;      /* use the planetary vertical position */
-  left: 5%;      /* use the planetary horizontal position */
-  width: 375px;  /* adjust size if needed */
-  /* Remove or adjust transform if not needed */
+  top: 60%;
+  left: 5%;
+  width: 375px;
 }
 
-/* New position for the planetary elements (swap to the sun's original position) */
 .planetary {
   position: absolute;
-  top: 50%;      /* use the sun's vertical position */
-  left: 50%;     /* use the sun's horizontal position */
-  transform: translate(-50%, -50%); /* center them */
-  width: 200px;  /* adjust size if needed */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+}
+
+/* Remote Player */
+.remote-player {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 100px;
+}
+
+.particles-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
 }
 
 
-  
-  /* Example element: Remote Control */
-  .remote-player {
-    position: absolute;
-    bottom: 0%;   /* Adjust for vertical position from the bottom */
-    right: 0%;    /* Adjust for horizontal position from the right */
-    width: 100px;
-  }
-
-  .now-playing {
-    margin-top: 1rem;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: var(--text-primary);
-  }
-
-  .player-controls {
-    margin-top: 1rem;
-  }
-  .player-controls button {
-    background-color: var(--accent);
-    color: var(--bg-primary);
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 4px;
-    margin: 0 0.5rem;
-    cursor: pointer;
-    font-weight: bold;
-    transition: opacity 0.3s ease;
-  }
-  .player-controls button:hover {
-    opacity: 0.9;
-  }
-  .track-list {
-    margin-top: 2rem;
-    list-style: none;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-  .track-list li {
-    background-color: var(--accent);
-    color: var(--bg-primary); /* Text */
-    margin: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-  .track-list li:hover {
-    background-color: var(--accent);
-  }
-  
-  /* Columns container (for extra content, such as informational panels or additional content) */
-.columns-container {
-    display: flex;
-    gap: 1rem;
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 1rem;
-  }
-  
-  .column {
-    flex: 1;
-    background-color: var(--bg-secondary);
-    padding: 1rem;
-    border-radius: 8px;
-    opacity: 0;               /* start hidden */
-    transform: translateY(20px); /* slight slide */
-    transition: opacity 1s ease, transform 1s ease;
-  }
-  
-  /* When columns are made visible */
-  .column.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  
-  /* Adjusted Particle Container is already defined */
-  #particles-js {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -2;
-    pointer-events: none;
-    background: transparent;
-    /* Add a white glow to the particles canvas */
-    #particles-js canvas {
-    filter: drop-shadow(0 0 8px #ffffff);
-  }
-  
-  }
-  
-  
-  /* Footer */
-  footer {
-    background-color: var(#000);
-  padding: 2rem;
-  margin-top: 4rem;
-  text-align: center;
+/* Optional Neon Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
 }
-
-  .social-links a {
-    color: var(--text-primary);
-    text-decoration: none;
-    margin: 0 10px;
-  }
-  
-  @media (max-width: 768px) {
-    .nav-links {
-      display: none;
-    }
-  }
-  
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 10px;
+  box-shadow: var(--glow);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neon-purple);
+}

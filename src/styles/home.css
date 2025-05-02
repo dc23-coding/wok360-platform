@@ -1,122 +1,107 @@
-
-/* Finalized home.css */
-/* Basic reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html, body {
-  width: 100%;
-  height: 100%;
-  font-family: 'Inter', sans-serif;
-  background: radial-gradient(circle at center, #121212, #000);
-  color: #fff;
-}
-
-/* Navigation Orbs */
-.nav-orbs {
+.home-container {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding: 1rem;
-  overflow-x: auto;
-  gap: 1rem;
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  background-color: #0d0d0d;
+  overflow: hidden;
 }
 
-.small-orb {
-  width: 80px;
-  height: 80px;
-  background: #bb86fc;
-  border-radius: 50%;
+
+.orb-layout {
   display: flex;
   justify-content: center;
   align-items: center;
-  text-decoration: none;
-  color: #121212;
-  font-weight: bold;
-  box-shadow: 0 0 10px rgba(187,134,252,0.7);
+  gap: 60px;
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 100px;
+  flex-wrap: wrap;
+}
+
+
+
+
+.orb {
+  width: 280px; /* Slightly reduced for better spacing */
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #6b3cb6 60%, #000000 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 0 40px rgba(141, 79, 241, 0.1);
   transition: transform 0.3s ease;
-  font-size: 0.9rem;
+  margin: 15px; /* Added margin for wrap behavior */
 }
 
-.small-orb:hover {
-  transform: scale(1.1);
+.orb:hover {
+  transform: scale(1.05);
 }
 
-/* Portal */
-.portal-container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.background {
+.avatar-orb {
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(187,134,252,0.3) 0%, rgba(3,218,198,0.3) 70%, transparent 100%);
-  border-radius: 50%;
-  animation: pulse 3s infinite alternate;
 }
 
-@keyframes pulse {
-  from { transform: scale(0.9); }
-  to { transform: scale(1.1); }
+
+/* Portal Text Style */
+.portal-orb .portal-text {
+  font-size: 1.5rem;
+  color: #fff;
+  font-weight: bold;
+  width: 300px;
+  height: 300px;
 }
 
-.portal {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  background: #bb86fc;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  box-shadow: 0 0 30px rgba(187,134,252,0.7);
-  transition: transform 0.3s ease;
+/* Right Orb Pulse */
+.action-orb {
+  animation: pulse 1s infinite;
+  width: 300px;
+  height: 300px;
 }
 
-.portal:hover {
-  transform: translate(-50%, -50%) scale(1.1);
-}
-
-.portal-text {
-  color: #121212;
+.action-text {
+  font-size: 1.25rem;
+  color: #fff;
   font-weight: bold;
 }
 
-/* Sliding Text */
-.sliding-text {
+/* Glowing Pulse Animation */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+  }
+  50% {
+    box-shadow: 0 0 25px #00ffff, 0 0 50px #00ffff;
+  }
+  100% {
+    box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+  }
+}
+
+/* Particle background placeholder */
+.particles {
   position: absolute;
-  bottom: 10%;
+  top: 0;
+  left: 0;
   width: 100%;
+  height: 100%;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+footer {
+  position: absolute;
+  bottom: 10px;
   text-align: center;
-  font-size: 1rem;
-  color: #bb86fc;
-  animation-duration: 3s;
-}
-
-/* Animations */
-.slideIn {
-  animation-name: slideIn;
-}
-
-.slideInRight {
-  animation-name: slideInRight;
-}
-
-@keyframes slideIn {
-  from { transform: translateX(-100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  width: 100%;
+  color: #888;
+  font-size: 0.875rem;
 }

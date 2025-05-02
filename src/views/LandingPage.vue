@@ -1,21 +1,20 @@
 <template>
-  <section class="video-hero">
-    <img
-      :src="placeholderImageUrl"
-      alt="Video Placeholder"
-      class="full-page-background"
-    />
-
-    <div class="overlay"></div>
-
-    <div class="hero-content">
-      <h1>Welcome to the WOK 360</h1>
-      <p>Immerse yourself in the future of media.</p>
-      <button class="enter-button" @click="openModal">Enter</button>
-    </div>
-
-    <NavigationModal :visible="showModal" @close="closeModal" />
-  </section>
+  <!-- Remove any potential white space between tags -->
+  <section class="video-hero"><img
+    :src="placeholderImageUrl"
+    alt="Video Placeholder"
+    class="full-page-background"
+  /><div
+    class="overlay"
+  ></div><div
+    class="hero-content"
+  ><h1>Welcome to the WOK 360</h1><p>Immerse yourself in the future of media.</p><button
+    class="enter-button"
+    @click="openModal"
+  >Enter</button></div><NavigationModal
+    :visible="showModal"
+    @close="closeModal"
+  /></section>
 </template>
 
 <script>

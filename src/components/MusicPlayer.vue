@@ -1,190 +1,96 @@
 <template>
-  <div class="music-player bg-black text-white min-h-screen flex flex-col items-center justify-center p-6">
-    <h2 class="text-3xl font-bold mb-6">Karma Soundwaves</h2>
+  <div class="karma-mall-page">
+    <section class="intro">
+      <h1>Welcome to Karma Mall</h1>
+      <p class="tagline">Earn crypto. Stream music. Shop with purpose. Karma rewards every click.</p>
+    </section>
 
-    <div class="w-full max-w-4xl space-y-6">
-      <div
-        v-for="track in tracks"
-        :key="track.id"
-        @click="selectTrack(track)"
-        class="flex items-center justify-between px-4 py-3 rounded-lg border border-gray-700 hover:bg-gray-800 transition cursor-pointer"
-      >
-        <div>
-          <h3 class="text-xl font-semibold">{{ track.title }}</h3>
-          <p class="text-sm text-gray-400">{{ track.artist }}</p>
+    <section class="music-section">
+      <h2>🎶 Featured Music Player</h2>
+      <MusicPlayer />
+    </section>
+
+    <section class="affiliate-section">
+      <h2>🛍️ Featured Products & Services</h2>
+      <div class="cards">
+        <div class="card">
+          <h3>Fuel Rewards</h3>
+          <p>Earn cashback or crypto by buying fuel with our partner links.</p>
         </div>
-        <div v-if="activeTrack?.id === track.id" class="text-green-400 font-bold">▶ Playing</div>
-      </div>
-
-      <!-- Audio Player + Waveform -->
-      <div v-if="activeTrack" class="mt-8 w-full">
-        <h3 class="text-xl font-semibold mb-2 text-center">Now Playing: {{ activeTrack.title }}</h3>
-        <div id="waveform" class="w-full bg-gray-900 rounded mb-4"></div>
-
-        <div class="flex justify-center space-x-4">
-          <button @click="playPause" class="px-4 py-2 bg-white text-black rounded font-semibold">
-            {{ isPlaying ? 'Pause' : 'Play' }}
-          </button>
-          <button @click="stop" class="px-4 py-2 border rounded">Stop</button>
+        <div class="card">
+          <h3>Truck Gear & Apparel</h3>
+          <p>Shop top-rated gear. Support trucker-owned brands.</p>
+        </div>
+        <div class="card">
+          <h3>Karma Crypto Wallet</h3>
+          <p>Coming soon: Track your rewards & withdraw directly to your wallet.</p>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
-import WaveSurfer from 'wavesurfer.js';
+<script>
+import MusicPlayer from '@/components/MusicPlayer.vue'
 
-interface Track {
-  id: number;
-  title: string;
-  artist: string;
-  url: string;
+export default {
+  name: 'KarmaMall', // we rename it in code even if the file is still MusicPage.vue
+  components: {
+    MusicPlayer
+  }
 }
-
-const tracks = ref<Track[]>([
-  {
-    id: 1,
-    title: 'Cosmic Echoes',
-    artist: 'Nova x Loopera',
-    url: '/audio/track1.mp3',
-  },
-  {
-    id: 2,
-    title: 'Quantum Drift',
-    artist: 'The Voidtape',
-    url: '/audio/track2.mp3',
-  },
-  {
-    id: 3,
-    title: 'Orbit Mode',
-    artist: 'Karma Beatz',
-    url: '/audio/track3.mp3',
-  },
-]);
-
-const activeTrack = ref<Track | null>(null);
-const isPlaying = ref(false);
-let wave: WaveSurfer | null = null;
-
-const selectTrack = (track: Track) => {
-  activeTrack.value = track;
-};
-
-const initializeWaveSurfer = (track: Track) => {
-  if (wave) {
-    wave.destroy();
-  }
-
-  wave = WaveSurfer.create({
-    container: '#waveform',
-    waveColor: '#888',
-    progressColor: '#16f5b9',
-    cursorColor: '#fff',
-    barWidth: 2,
-    height: 100,
-    backend: 'MediaElement',
-    mediaControls: true,
-  });
-
-  wave.load(track.url);
-
-  wave.on('ready', () => {
-    wave?.play();
-    isPlaying.value = true;
-  });
-
-  wave.on('finish', () => {
-    isPlaying.value = false;
-  });
-
-  // Manually trigger resize on initialization to ensure correct dimensions
-  setTimeout(() => {
-    wave?.drawBuffer();
-  }, 0);
-};
-
-watch(activeTrack, (newTrack) => {
-  if (newTrack) {
-    initializeWaveSurfer(newTrack);
-  }
-});
-
-const playPause = () => {
-  if (wave) {
-    wave.playPause();
-    isPlaying.value = wave.isPlaying();
-  }
-};
-
-const stop = () => {
-  wave?.stop();
-  isPlaying.value = false;
-  activeTrack.value = null;
-};
-
-// Handle window resize manually to ensure responsiveness
-const handleResize = () => {
-  if (wave) {
-    wavesurfer.empty()
-wavesurfer.load'url;
-;
-  }
-};
-
-onMounted(() => {
-  window.addEventListener('resize', handleResize);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize);
-  if (wave) {
-    wave.destroy();
-    wave = null;
-  }
-});
 </script>
 
 <style scoped>
-.music-player {
-  background: linear-gradient(to bottom, #000, #0a0a0a);
+.karma-mall-page {
+  padding: 2rem;
+  color: #fff;
+  background: #121212;
+  min-height: 100vh;
 }
 
-/* Ensure waveform container is fully responsive */
-#waveform {
-  width: 100%;
-  min-height: 100px;
+.intro {
+  text-align: center;
+  margin-bottom: 3rem;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .music-player {
-    padding: 1rem;
-  }
-  h2 {
-    font-size: 1.5rem;
-  }
-  .text-xl {
-    font-size: 1.25rem;
-  }
-  #waveform {
-    min-height: 80px;
-  }
+.tagline {
+  font-style: italic;
+  color: #03dac5;
+  margin-top: 0.5rem;
 }
 
-@media (max-width: 480px) {
-  .music-player {
-    padding: 0.5rem;
-  }
-  h2 {
-    font-size: 1.25rem;
-  }
-  .text-xl {
-    font-size: 1rem;
-  }
-  #waveform {
-    min-height: 60px;
-  }
+.music-section {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.affiliate-section {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.card {
+  background: #1e1e1e;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  max-width: 300px;
+  flex: 1 1 250px;
+  text-align: left;
+  transition: transform 0.3s ease;
+  border: 1px solid #2b2b2b;
+}
+
+.card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 12px #03dac5aa;
 }
 </style>

@@ -1,6 +1,4 @@
-
-/* Finalized home.css */
-/* Basic reset */
+/* Reset */
 * {
   margin: 0;
   padding: 0;
@@ -13,24 +11,34 @@ html, body {
   font-family: 'Inter', sans-serif;
   background: radial-gradient(circle at center, #121212, #000);
   color: #fff;
+  overflow-x: hidden;
 }
 
-/* Navigation Orbs */
-.orbs-container { /* 👈 match your <div class="orbs-container"> */
-  display: flex;
-  justify-content: center;
-  padding: 1rem;
-  gap: 1rem;
-  margin-bottom: 3rem;
-  margin-top: 2rem;
-}
-
+/* Containers */
 .home-container {
   position: relative;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
+  padding-top: 4rem;
 }
 
+/* Navigation Orbs */
+.orbs-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+}
 
 .small-orb {
   width: 80px;
@@ -44,75 +52,40 @@ html, body {
   color: #121212;
   font-weight: bold;
   box-shadow: 0 0 10px rgba(187,134,252,0.7);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   font-size: 0.9rem;
 }
 
 .small-orb:hover {
-  transform: scale(1.1);
+  transform: scale(1.1) rotate(2deg);
+  box-shadow: 0 0 15px rgba(3,218,198,0.7);
 }
 
-.home-container {
-  background: #121212;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-}
-
-
-footer {
-  position: absolute;
-  bottom: 10px;
-  text-align: center;
-  width: 100%;
-  color: #888;
-}
-
-/* Portal */
+/* Portal Area */
 .portal-container {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin: 0 auto;
+}
+
+.background {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.orbs-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;      /* Center horizontally */
-  gap: 1rem;                    /* Space between orbs */
-  padding: 1rem;
-  margin-top: 2rem;
-  width: 100%;
-  max-width: 800px;             /* Optional: keeps them from stretching too far */
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-
-.background {
   width: 300px;
   height: 300px;
   background: radial-gradient(circle, rgba(187,134,252,0.3) 0%, rgba(3,218,198,0.3) 70%, transparent 100%);
   border-radius: 50%;
-  animation: pulse 3s infinite alternate;
-}
-
-@keyframes pulse {
-  from { transform: scale(0.9); }
-  to { transform: scale(1.1); }
+  transform: translate(-50%, -50%);
+  z-index: 0;
 }
 
 .portal {
-  position: absolute;
+  position: relative;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(1);
   width: 150px;
   height: 150px;
   border-radius: 50%;
@@ -123,6 +96,7 @@ footer {
   cursor: pointer;
   box-shadow: 0 0 30px rgba(187,134,252,0.7);
   transition: transform 0.3s ease;
+  z-index: 1;
 }
 
 .portal:hover {
@@ -130,38 +104,71 @@ footer {
   box-shadow: 0 0 40px rgba(187,134,252,1);
 }
 
+.portal::before {
+  content: '';
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(3,218,198,0.4) 0%, rgba(3,218,198,0.2) 70%, transparent 100%);
+  animation: pulse 3s infinite alternate;
+  z-index: -2;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  filter: blur(10px);
+}
+
+@keyframes ripple {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+@keyframes pulse {
+  from { transform: translate(-50%, -50%) scale(0.9); opacity: 0.7; }
+  to { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+}
 
 .portal-text {
   color: #121212;
   font-weight: bold;
-}
-
-/* Sliding Text */
-.sliding-text {
-  position: absolute;
-  bottom: 10%;
-  width: 100%;
-  text-align: center;
   font-size: 1rem;
-  color: #bb86fc;
-  animation-duration: 3s;
 }
 
-/* Animations */
-.slideIn {
-  animation-name: slideIn;
-}
-
-.slideInRight {
-  animation-name: slideInRight;
+/* Slide-in Text */
+.sliding-text {
+  position: relative;
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #03dac5;
+  animation: slideIn 2s ease forwards;
+  opacity: 0;
+  z-index: 2;
 }
 
 @keyframes slideIn {
-  from { transform: translateX(-100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
-@keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+/* Particles (optional) */
+#particles-js {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Footer */
+footer {
+  position: absolute;
+  bottom: 10px;
+  text-align: center;
+  width: 100%;
+  color: #888;
+  font-size: 0.8rem;
 }

@@ -1,3 +1,11 @@
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* prevents horizontal scroll */
+}
+
 /* Basic Reset */
 * {
   margin: 0;
@@ -27,6 +35,9 @@
   height: 100%;
   object-fit: cover; /* Cover the entire container, potentially cropping */
   z-index: -2; /* Behind the overlay and content */
+   /* your existing styles */
+   min-width: 100%;
+   min-height: 100%;
 }
 
 .overlay {

@@ -1,6 +1,6 @@
-<!-- Music.vue -->
+<!-- Karma-mall.vue -->
 <template>
-  <div class="music bg-black text-white min-h-screen flex p-6">
+  <div class="karma-mall bg-black text-white min-h-screen flex p-6">
     <!-- Particles.js Background -->
     <div id="particles-js" class="particles"></div>
 
@@ -82,11 +82,11 @@ interface Track {
 
 // Navigation links (left orbs)
 const navLinks = [
-  { name: 'Home', path: '/home' },
+  { name: 'Home', path: '/' },
   { name: 'Episodes', path: '/episodes' },
-  { name: 'Music', path: '/music' },
   { name: 'Games', path: '/games' },
 ];
+
 
 // Tracks (right orbs and list)
 const tracks = ref<Track[]>([
