@@ -5,3 +5,7 @@
     />
   </svg>
 </template>
+
+/* <div class="orb-lock" v-if="!isLoggedIn">
+  🔒
+</div> */

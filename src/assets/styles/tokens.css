@@ -1,0 +1,13 @@
+/* Global design tokens */
+:root {
+    /* Primary accent – iOS “system blue” */
+    --accent: #0A84FF;
+  
+    /* Neutral surfaces */
+    --surface-dark: #1C1C1E;
+    --surface-light: #F2F2F7;
+  
+    /* Subtle outline */
+    --border: #3A3A3C;
+  }
+  

@@ -1,6 +1,6 @@
 // src/plugins/supabase.ts
 import { App } from 'vue'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/utils/supabase'
 
 export default {
   install(app: App) {

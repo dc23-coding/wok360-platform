@@ -1,71 +1,112 @@
-/* src/styles/puzzled-game.css */
-.puzzled-game {
-    text-align: center;
-    color: #fff;
-  }
-  .puzzled-game h3 {
-    color: #bb86fc;
-    margin-bottom: 1rem;
-  }
-  .grid {
-    display: inline-block;
-    margin: 1rem 0;
-  }
-  .row {
-    display: flex;
-  }
-  .cell {
-    width: 50px;
-    height: 50px;
-    border: 2px solid #333;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    text-transform: uppercase;
-    margin: 2px;
-  }
-  .cell.correct {
-    background: #6200ea;
-    border-color: #6200ea;
-  }
-  .cell.present {
-    background: #bb86fc;
-    border-color: #bb86fc;
-  }
-  .cell.absent {
-    background: #555;
-    border-color: #555;
-  }
-  .keyboard {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 5px;
-    max-width: 600px;
-    margin: 0 auto;
-  }
-  .keyboard button {
-    padding: 10px;
-    border: none;
-    background: #333;
-    color: #fff;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  .keyboard button.used {
-    background: #777;
-  }
-  .game-result {
-    margin-top: 1rem;
-  }
-  .play-again {
-    margin-top: 1rem;
-    padding: 0.5rem 1rem;
-    background: #03dac5;
-    border: none;
-    color: #000;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
+.nav-orb-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #10B981;
+  border-radius: 8px;
+}
+
+.nav-orb {
+  padding: 0.5rem 1rem;
+  background: #1a1a1a;
+  color: #00ffc6;
+  text-align: center;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+}
+
+.nav-orb.active, .nav-orb:hover {
+  background: #10B981;
+  color: #000;
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+}
+
+.wallet-container button {
+  transition: all 0.3s ease;
+}
+
+.wallet-container .connected {
+  background: #10B981;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  background: #333;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  width: var(--progress);
+  height: 100%;
+  background: #00ffc6;
+  transition: width 0.5s ease;
+}
+
+.game-box.active {
+  border-color: #00ffc6;
+  box-shadow: 0 0 20px rgba(0, 255, 198, 0.5);
+}
+
+.particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+/* ========= Games page utilities ========= */
+
+/* Tablet glow & game‑box borders  */
+.tablet-container,
+.game-box,
+.game-embed-container {
+  box-shadow: 0 0 15px rgba(10, 132, 255, 0.4);
+  border-color: var(--accent);
+}
+
+/* Glitch & popup tint */
+.points-popup,
+.glitch {
+  color: var(--accent);
+  text-shadow: 0 0 10px var(--accent);
+}
+
+/* Hover/active glow */
+.game-box:hover,
+.menu-button.active,
+.nav-orb.active {
+  box-shadow: 0 0 15px rgba(10, 132, 255, 0.6);
+}
+
+/* Matrix rain / grid conveyor recolor */
+.animate-matrix-rain {
+  background-image: linear-gradient(
+    to bottom,
+    rgba(10, 132, 255, 0.1),
+    rgba(10, 132, 255, 0.3) 10%,
+    rgba(10, 132, 255, 0.1) 20%
+  );
+}
+
+.animate-grid-conveyor {
+  background-image:
+    linear-gradient(rgba(10, 132, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(to right, rgba(10, 132, 255, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Glitch keyframes share same accent */
+@keyframes glitch {
+  0%   { transform: translate(0); }
+  20%  { transform: translate(-2px, 2px); }
+  40%  { transform: translate(2px, -2px); }
+  60%  { transform: translate(-2px, 0); }
+  80%  { transform: translate(2px, 0); }
+  100% { transform: translate(0); }
+}

@@ -1,100 +1,122 @@
 <template>
-  <div class="games text-white min-h-screen flex p-6">
-    <div id="particles-js" class="particles"></div>
-
-    <nav class="nav-orb-container left">
+  <div
+    :class="[
+      'min-h-screen flex flex-col p-6 relative overflow-hidden',
+      theme === 'dark' ? 'bg-black text-accent' : 'bg-gray-200 text-gray-900'
+    ]"
+  >
+    <div
+      v-if="theme === 'dark'"
+      class="absolute inset-0 opacity-10 pointer-events-none grid-background animate-grid-conveyor"
+    ></div>
+    <Particles
+      id="tsparticles"
+      :options="particleOptions"
+      class="absolute inset-0 z-0"
+    />
+    <nav ref="headerNav" class="flex justify-center gap-6 mb-6 z-10">
       <router-link
         v-for="link in navLinks"
         :key="link.name"
         :to="link.path"
-        class="nav-orb"
+        class="nav-orb menu-button text-lg font-semibold"
         :class="{ active: $route.path === link.path }"
       >
         {{ link.name }}
       </router-link>
     </nav>
-
-    <div class="main-content">
-      <div class="tablet-container">
-        <section class="wallet-container">
+    <div class="main-content max-w-4xl mx-auto w-full">
+      <div
+        class="tablet-container bg-surfaceLight dark:bg-surfaceDark border border-accent shadow-[0_0_20px_var(--accent)] rounded-lg p-6"
+      >
+        <button
+          class="mb-4 px-4 py-2 rounded border border-accent text-accent glitch hover:shadow-[0_0_15px_var(--accent)]"
+          @click="toggleTheme"
+        >
+          {{ theme === 'dark' ? 'Light Mode' : 'Dark Mode' }}
+        </button>
+        <section class="wallet-container mb-6 text-accent">
           <button
             :disabled="isConnecting"
             @click="connectMetaMask"
+            class="px-4 py-3 rounded border border-accent text-inherit glitch hover:shadow-[0_0_15px_var(--accent)]"
             :class="{ connected: walletAddress }"
           >
-            {{ walletAddress ? 'Disconnect' : isConnecting ? 'Connecting...' : 'Connect MetaMask' }}
+            {{ walletAddress ? 'Disconnect' : isConnecting ? 'Connecting…' : 'Connect MetaMask' }}
           </button>
-          <p v-if="walletAddress" class="wallet-address">{{ walletAddress }}</p>
-          <p v-else-if="walletError" class="wallet-error">{{ walletError }}</p>
+          <button
+            v-if="walletAddress"
+            @click="mintNFT"
+            class="ml-4 px-4 py-3 rounded border border-accent text-inherit glitch hover:shadow-[0_0_15px_var(--accent)]"
+          >
+            Mint Reward NFT
+          </button>
+          <p v-if="walletAddress" class="mt-2 break-all text-sm text-inherit">
+            {{ walletAddress }}
+          </p>
+          <p v-else-if="walletError" class="mt-2 text-sm text-red-500">
+            {{ walletError }}
+          </p>
         </section>
-
-        <section class="rewards-container">
-          <h3>Rewards</h3>
-          <p>Points: {{ points }}</p>
-          <div class="progress-bar" :style="{ '--progress': `${progress}%` }">
-            <div class="progress-fill"></div>
-          </div>
-          <p>Daily Challenge: Play {{ challengeGoal - gamesPlayed }} more games today!</p>
+        <section class="rewards-container mb-6 text-accent">
+          <h3 class="text-xl font-semibold glitch mb-2">Rewards</h3>
+          <p class="mb-1">Points: {{ points }}</p>
         </section>
-
-        <!-- ✨ Floating Points Animation -->
         <transition name="points-popup" @after-leave="resetPointsEarned">
-          <div v-if="pointsEarned" class="points-popup">
-            +{{ pointsEarned }} Points!
-          </div>
+          <div v-if="pointsEarned" class="points-popup">+{{ pointsEarned }} Points!</div>
         </transition>
-
-        <section class="games-grid">
+        <section class="games-grid grid grid-cols-2 gap-4">
           <div
             v-for="game in games"
             :key="game.id"
-            class="game-box"
+            class="game-box bg-white dark:bg-surfaceDark text-accent border border-accent shadow-[0_0_15px_var(--accent)] rounded-lg p-4 text-center cursor-pointer transition-transform duration-300 hover:scale-105"
             :class="{ active: activeGame?.id === game.id }"
             @click="selectGame(game)"
           >
             {{ game.name }}
           </div>
         </section>
-
-        <div v-if="activeGame" class="game-embed-container">
+        <div
+          v-if="activeGame"
+          class="game-embed-container mt-6 bg-surfaceLight dark:bg-surfaceDark border border-accent rounded-lg p-4 relative"
+        >
           <PuzzledGame v-if="activeGame.id === 'puzzled'" @win="handleGameWin" />
           <TriviaGame v-else-if="activeGame.id === 'trivia'" @win="handleGameWin" />
-          <SportsGame
-            v-else-if="activeGame.id === 'sports'"
-            @predictionSubmitted="handleSportsGameWin"
-          />
+          <SportsGame v-else-if="activeGame.id === 'sports'" @predictionSubmitted="handleSportsGameWin" />
           <FortuneGame v-else-if="activeGame.id === 'fortune'" @win="handleGameWin" />
           <div v-else class="placeholder">Game {{ activeGame.name }} coming soon!</div>
+          <div v-if="showRain" class="absolute inset-0 opacity-20 pointer-events-none animate-matrix-rain"></div>
         </div>
       </div>
     </div>
-
-    <nav class="nav-orb-container right">
-      <button
-        v-for="game in games"
-        :key="game.id"
-        @click="selectGame(game)"
-        class="nav-orb"
-        :class="{ active: activeGame?.id === game.id }"
-      >
-        {{ game.name }}
-      </button>
-    </nav>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import PuzzledGame from '../components/PuzzledGame.vue';
-import TriviaGame from '../components/TriviaGame.vue';
-import FortuneGame from '../components/FortuneGame.vue';
-import SportsGame from '../components/SportsGame.vue';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ethers } from 'ethers';
+import Particles from '@tsparticles/vue3';
+import PuzzledGame from '@/components/PuzzledGame.vue';
+import TriviaGame from '@/components/TriviaGame.vue';
+import FortuneGame from '@/components/FortuneGame.vue';
+import SportsGame from '@/components/SportsGame.vue';
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface Game {
   id: string;
   name: string;
 }
+
+const theme = ref<string>(localStorage.getItem('theme') || 'dark');
+const toggleTheme = () => {
+  theme.value = theme.value === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('theme', theme.value);
+  document.documentElement.classList.toggle('dark', theme.value === 'dark');
+};
 
 const navLinks = [
   { name: 'Home', path: '/home' },
@@ -112,16 +134,87 @@ const games = ref<Game[]>([
 
 const route = useRoute();
 const activeGame = ref<Game | null>(null);
+
 const walletAddress = ref<string | null>(null);
 const isConnecting = ref(false);
 const walletError = ref<string | null>(null);
-const points = ref(Number(localStorage.getItem('points')) || 0);
-const gamesPlayed = ref(Number(localStorage.getItem('gamesPlayed')) || 0);
-const challengeGoal = 3;
-const progress = ref((gamesPlayed.value / challengeGoal) * 100);
 
-// ✨ Animation state
+const points = ref<number>(Number(localStorage.getItem('points')) || 0);
+const gamesPlayed = ref<number>(Number(localStorage.getItem('gamesPlayed')) || 0);
+const challengeGoal = 3;
+const progress = ref<number>((gamesPlayed.value / challengeGoal) * 100);
+
+const showRain = ref(false);
 const pointsEarned = ref<number | null>(null);
+
+const particleOptions = ref({
+  background: {
+    color: {
+      value: theme.value === 'dark' ? '#000000' : '#E5E7EB',
+    },
+  },
+  fpsLimit: 60,
+  interactivity: {
+    events: {
+      onClick: {
+        enable: true,
+        mode: 'push',
+      },
+      onHover: {
+        enable: true,
+        mode: 'repulse',
+      },
+    },
+    modes: {
+      push: {
+        quantity: 4,
+      },
+      repulse: {
+        distance: 100,
+        duration: 0.4,
+      },
+    },
+  },
+  particles: {
+    color: {
+      value: '#00BFFF',
+    },
+    links: {
+      color: '#00BFFF',
+      distance: 150,
+      enable: true,
+      opacity: 0.4,
+      width: 1,
+    },
+    move: {
+      direction: 'none',
+      enable: true,
+      outModes: {
+        default: 'bounce',
+      },
+      random: false,
+      speed: 2,
+      straight: false,
+    },
+    number: {
+      density: {
+        enable: true,
+      },
+      value: 50,
+    },
+    opacity: {
+      value: 0.5,
+    },
+    shape: {
+      type: 'circle',
+    },
+    size: {
+      value: { min: 1, max: 5 },
+    },
+  },
+  detectRetina: true,
+});
+
 const resetPointsEarned = () => {
   pointsEarned.value = null;
 };
@@ -140,7 +233,8 @@ const connectMetaMask = async () => {
 
   try {
     isConnecting.value = true;
-    const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
+    const provider = new ethers.BrowserProvider((window as any).ethereum);
+    const accounts: string[] = await provider.send('eth_requestAccounts', []);
     walletAddress.value = accounts[0];
     walletError.value = null;
   } catch (error: any) {
@@ -150,60 +244,46 @@ const connectMetaMask = async () => {
   }
 };
 
+const mintNFT = async () => {
+  if (!walletAddress.value) {
+    walletError.value = 'Connect wallet first!';
+    return;
+  }
+
+  try {
+    const provider = new ethers.BrowserProvider((window as any).ethereum);
+    const signer = await provider.getSigner();
+    const contractAddress = '0xYourContractAddress';
+    const contractABI: readonly any[] = [
+      // Add your contract ABI here, e.g.:
+      // "function mint() public"
+    ];
+    const contract = new ethers.Contract(contractAddress, contractABI, signer);
+    await contract.mint();
+    walletError.value = null;
+  } catch (error: any) {
+    walletError.value = 'Failed to mint NFT. Try again.';
+  }
+};
+
 const selectGame = (game: Game) => {
   activeGame.value = game;
 };
 
 const handleGameWin = () => {
+  pointsEarned.value = 10;
   points.value += 10;
   gamesPlayed.value += 1;
-  pointsEarned.value = 10;
-  progress.value = Math.min((gamesPlayed.value / challengeGoal) * 100, 100);
+  progress.value = (gamesPlayed.value / challengeGoal) * 100;
   localStorage.setItem('points', points.value.toString());
   localStorage.setItem('gamesPlayed', gamesPlayed.value.toString());
 };
 
 const handleSportsGameWin = () => {
-  points.value += 10;
-  gamesPlayed.value += 1;
-  pointsEarned.value = 10;
-  progress.value = Math.min((gamesPlayed.value / challengeGoal) * 100, 100);
-  localStorage.setItem('points', points.value.toString());
-  localStorage.setItem('gamesPlayed', gamesPlayed.value.toString());
+  handleGameWin();
 };
+
+onMounted(() => {
+  document.documentElement.classList.toggle('dark', theme.value === 'dark');
+});
 </script>
-
-<style src="@/assets/styles/games.css"></style>
-
-<!-- ✨ Floating Points Animation CSS -->
-<style scoped>
-.points-popup {
-  position: absolute;
-  top: 10%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 2rem;
-  color: #00ffc6;
-  text-shadow: 0 0 10px #00ffc6;
-  font-weight: bold;
-  z-index: 999;
-  pointer-events: none;
-}
-
-.points-popup-enter-active,
-.points-popup-leave-active {
-  transition: all 1.2s ease;
-}
-
-.points-popup-enter-from,
-.points-popup-leave-to {
-  opacity: 0;
-  transform: translate(-50%, 20%);
-}
-
-.points-popup-enter-to,
-.points-popup-leave-from {
-  opacity: 1;
-  transform: translate(-50%, -50%);
-}
-</style>

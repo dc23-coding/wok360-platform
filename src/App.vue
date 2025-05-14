@@ -1,21 +1,44 @@
 <template>
-  <RouterView />
+  <div>
+    <!-- Theme Toggle Button -->
+    <button @click="toggleTheme" class="fixed top-2 left-2 z-50 nav-orb">
+      Toggle Theme
+    </button>
+
+    <!-- Ambient Canvas Particle Layer -->
+    <CanvasParticles />
+
+    <!-- App Router Content -->
+    <RouterView />
+  </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
+import { ref, onMounted } from 'vue'
 import { RouterView } from 'vue-router'
-import { onMounted } from 'vue'
+import CanvasParticles from '@/components/CanvasParticles.vue'
+
+const currentTheme = ref('dark')
 
 onMounted(() => {
-  // Nuclear option to ensure no margins
   document.body.style.margin = '0'
   document.body.style.padding = '0'
   document.documentElement.style.overflowX = 'hidden'
+
+  const savedTheme = localStorage.getItem('theme') || 'dark'
+  document.documentElement.setAttribute('data-theme', savedTheme)
+  currentTheme.value = savedTheme
 })
+
+const toggleTheme = () => {
+  const nextTheme = currentTheme.value === 'dark' ? 'light' : 'dark'
+  document.documentElement.setAttribute('data-theme', nextTheme)
+  localStorage.setItem('theme', nextTheme)
+  currentTheme.value = nextTheme
+}
 </script>
 
 <style>
-/* GLOBAL STYLES (not scoped) */
 html, body, #app {
   margin: 0 !important;
   padding: 0 !important;
@@ -24,16 +47,12 @@ html, body, #app {
   overflow-x: hidden !important;
 }
 
-/* Remove RouterView potential spacing */
 body > #app > div {
   display: block !important;
   min-height: 100vh;
 }
 
-*,
-*::before,
-*::after {
+*, *::before, *::after {
   box-sizing: inherit;
 }
-
 </style>

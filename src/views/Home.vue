@@ -51,7 +51,8 @@ const router = useRouter()
 const avatarVideo = ref<HTMLVideoElement | null>(null)
 
 const enterPortal = () => {
-  const pages = ['/episodes', '/music', '/games']
+  const pages = ['/episodes', '/music', '/music-studio', '/games'];
+
   const randomPage = pages[Math.floor(Math.random() * pages.length)]
   router.push(randomPage)
 }
