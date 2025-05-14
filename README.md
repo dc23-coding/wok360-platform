@@ -42,3 +42,4 @@ yarn install
 # Run the development server
 yarn dev
 
+Triggering CI run
