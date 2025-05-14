@@ -1,29 +1,44 @@
-# worldofkarma360-new
+# 🌌 World of Allegory
 
-This template should help get you started developing with Vue 3 in Vite.
+An immersive, blockchain-powered interactive platform featuring:
 
-## Recommended IDE Setup
+- 🎮 **Games Studio** with Play-to-Earn Mechanics
+- 🎵 **Mureka Music Studio** with Remix and NFT Minting
+- 🎥 **Episodes Studio** with Streamlined Media Experience
+- 🪙 **NFT Rewards & Points System** for User Engagement
+- 🧩 **Orb-Based Navigation** with Wallet Integration
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## 🚀 Features
 
-## Customize configuration
+- **Interactive Navigation**
+  - Orb-based entry to Games, Music, Episodes, and Remix Studios.
+  
+- **Mureka Music Studio**
+  - Record, Type, or Upload content.
+  - Vote and Mint Community Submissions as NFTs.
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+- **Games Studio**
+  - Play Puzzled, Trivia, Sports, and Fortune games.
+  - Earn points and mint achievements.
 
-## Project Setup
+- **Episodes Studio**
+  - Watch featured videos in a 1920x1080 immersive layout.
+  - Filter and interact with episodes.
 
-```sh
-npm install
-```
+- **Remix Studio**
+  - Remix community submissions and mint your creations.
 
-### Compile and Hot-Reload for Development
+- **Blockchain Integration**
+  - MetaMask Wallet Connection
+  - NFT Minting on Polygon/Arbitrum
+  - ERC-4337 Smart Wallet Support
 
-```sh
-npm run dev
-```
+## 🛠️ Development Setup
 
-### Compile and Minify for Production
+```bash
+# Install dependencies
+yarn install
 
-```sh
-npm run build
-```
+# Run the development server
+yarn dev
+
