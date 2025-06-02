@@ -43,7 +43,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ethers, JsonFragment } from 'ethers'
+import { ethers } from 'ethers'
+import type { JsonFragment } from 'ethers'
 import RecordInput from '@/components/MurekaStudio/RecordInput.vue'
 import TextInput from '@/components/MurekaStudio/TextInput.vue'
 import UploadInput from '@/components/MurekaStudio/UploadInput.vue'

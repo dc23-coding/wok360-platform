@@ -5,9 +5,9 @@
 
     <!-- Top Tabs -->
     <div class="menu-bar">
-      <span class="menu-tab" @click="goTo('/episodes')">Episodes</span>
-      <span class="menu-tab" @click="goTo('/music')">Music</span>
-      <span class="menu-tab" @click="goTo('/games')">Games</span>
+      <router-link to="/episodes" class="menu-tab">Episodes</router-link>
+      <router-link to="/music" class="menu-tab">Music</router-link>
+      <router-link to="/games" class="menu-tab">Games</router-link>
     </div>
 
     <!-- 3-Orb Layout -->
@@ -30,10 +30,29 @@
         <span class="portal-text">Enter Portal</span>
       </div>
 
-      <!-- Right Orb: Talk -->
-      <div class="orb action-orb press" @click="triggerFunction">
-        <span class="action-text">Talk</span>
+      <!-- Right Orb: Shopify Products -->
+      <div class="orb shopify-orb" @click="cycleProduct">
+        <img
+          :src="products[currentIndex].img"
+          :alt="products[currentIndex].name"
+          class="product-image"
+        />
+        <div class="product-label">
+          {{ products[currentIndex].name }}<br>{{ products[currentIndex].price }}
+        </div>
       </div>
+    </div>
+
+    <!-- Buy Now Button -->
+    <div v-if="products[currentIndex].url" class="buy-button-container">
+      <a
+        :href="products[currentIndex].url"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="buy-button"
+      >
+        Buy Now
+      </a>
     </div>
 
     <!-- Footer -->
@@ -47,12 +66,63 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+interface Product {
+  name: string
+  img: string
+  price: string
+  url: string
+}
+
 const router = useRouter()
 const avatarVideo = ref<HTMLVideoElement | null>(null)
 
-const enterPortal = () => {
-  const pages = ['/episodes', '/music', '/music-studio', '/games'];
+const products: Product[] = [
+  {
+    name: 'WC-Jacket',
+    img: '/products/branded-jacket-1.png',
+    price: '$70.00',
+    url: 'https://kg4bp4-ae.myshopify.com/products/unisex-bomber-jacket'
+  },
+  {
+    name: 'WC-Sneakers',
+    img: '/products/branded-canvas-1.png',
+    price: '$65.00',
+    url: 'https://kg4bp4-ae.myshopify.com/products/men-s-lace-up-canvas-shoes'
+  },
+  {
+    name: 'WC-TShirts',
+    img: '/products/branded-tshirt-1.png',
+    price: '$30.00',
+    url: 'https://kg4bp4-ae.myshopify.com/products/women-s-basic-softstyle-t-shirt'
+  },
+  {
+    name: 'WC-Sweater',
+    img: '/products/branded-sweater-fly.png',
+    price: '$30.50',
+    url: 'https://kg4bp4-ae.myshopify.com/products/unisex-premium-sweatshirt?variant=51386017349946'
+  },
+  {
+    name: 'WC-Skirt',
+    img: '/products/branded-dress-3.png',
+    price: '$48.99',
+    url: 'https://kg4bp4-ae.myshopify.com/products/skater-dress'
+  },
+  {
+    name: 'WC-Swimwear',
+    img: '/products/branded-swimwear-7.png',
+    price: '$39.49',
+    url: 'https://kg4bp4-ae.myshopify.com/products/one-piece-swimsuit'
+  }
+]
 
+const currentIndex = ref(0)
+
+const cycleProduct = () => {
+  currentIndex.value = (currentIndex.value + 1) % products.length
+}
+
+const enterPortal = () => {
+  const pages = ['/episodes', '/music', '/games']
   const randomPage = pages[Math.floor(Math.random() * pages.length)]
   router.push(randomPage)
 }
@@ -63,14 +133,6 @@ const triggerAvatar = () => {
     avatarVideo.value.play()
   }
 }
-
-const triggerFunction = () => {
-  console.log('Function button clicked!')
-}
-
-const goTo = (path: string) => {
-  router.push(path)
-}
 </script>
 
 <style scoped>
@@ -80,7 +142,7 @@ const goTo = (path: string) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 40px;
+  padding: 40px 20px;
   position: relative;
   overflow: hidden;
 }
@@ -126,29 +188,35 @@ const goTo = (path: string) => {
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 60px;
+  gap: 6vw;
   width: 100%;
   max-width: 1200px;
   padding: 20px;
   z-index: 1;
+  flex-wrap: wrap;
 }
 
 /* Orb Design */
 .orb {
-  width: 300px;
-  height: 300px;
+  width: 30vw;
+  max-width: 300px;
+  min-width: 150px;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
   background: radial-gradient(circle, #1f1f1f 60%, #000000 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
 .orb:hover {
-  transform: scale(1.05);
+  transform: scale(1.1);
+  box-shadow: 0 0 30px #00ffff, 0 0 60px #00ffff;
 }
 
 /* Avatar Orb */
@@ -157,6 +225,22 @@ const goTo = (path: string) => {
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
+}
+.avatar-orb {
+  background: radial-gradient(circle, #1f1f1f 60%, #000000 100%);
+}
+.avatar-orb:hover {
+  box-shadow: 0 0 30px #00ffff, 0 0 60px #00ffff;
+}
+.portal-orb {
+  /* Example background gradient; adjust colors as desired */
+  background: radial-gradient(circle, #1f1f1f 60%, #006666 100%);
+}
+
+.portal-orb .portal-text {
+  /* Bright text color */
+  color: #ffffff;
+  font-weight: bold;
 }
 
 /* Portal Orb Pulse */
@@ -176,18 +260,45 @@ const goTo = (path: string) => {
   }
 }
 
-/* Talk Orb Press */
-.press:active {
-  transform: scale(0.95);
-  box-shadow: 0 0 15px #ff00ff, 0 0 40px #ff00ff;
+/* Shopify Orb */
+.shopify-orb .product-image {
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
-/* Orb Text Labels */
-.portal-text,
-.action-text {
-  font-size: 1.5rem;
+.shopify-orb .product-label {
+  position: absolute;
+  bottom: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 1rem;
   color: #fff;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Buy Now Button */
+.buy-button-container {
+  margin-top: 20px;
+  z-index: 1;
+}
+
+.buy-button {
+  background-color: #00ffff;
+  color: #0d0d0d;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
   font-weight: bold;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.buy-button:hover {
+  background-color: #00d4d4;
 }
 
 /* Footer */
@@ -198,5 +309,44 @@ footer {
   text-align: center;
   color: #888;
   font-size: 0.875rem;
+}
+
+/* Responsive Text Size */
+@media (max-width: 768px) {
+  .menu-tab {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+  }
+
+  .shopify-orb .product-label,
+  .portal-orb .portal-text {
+    font-size: 0.85rem;
+  }
+
+  .buy-button {
+    font-size: 0.9rem;
+    padding: 10px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-container {
+    padding: 20px 10px;
+  }
+
+  .menu-tab {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+
+  .shopify-orb .product-label,
+  .portal-orb .portal-text {
+    font-size: 0.75rem;
+  }
+
+  .buy-button {
+    font-size: 0.8rem;
+    padding: 8px 16px;
+  }
 }
 </style>

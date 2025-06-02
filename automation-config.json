@@ -1,0 +1,61 @@
+{
+  "product": "WorldOfAllegory",
+  "version": "1.0.0",
+  "features": [
+    "Games Studio",
+    "Music Studio (Mureka)",
+    "Episodes Studio",
+    "Remix Studio",
+    "NFT Minting",
+    "Points System",
+    "Wallet Integration"
+  ],
+  "qaTargets": [
+    "/games-studio",
+    "/music-studio",
+    "/episodes-studio",
+    "/remix-studio"
+  ],
+  "deployment": {
+    "platform": "Vercel",
+    "branch": "main"
+  },
+  "roleAssignments": {
+    "Nova": {
+      "responsibilities": [
+        "Oversee product vision alignment",
+        "Validate engagement funnel strategy",
+        "Ensure business and user goals are met"
+      ],
+      "deliveryExpectations": [
+        "Product Roadmaps",
+        "Epic and Milestone Definitions",
+        "Cross-Team Coordination Updates"
+      ]
+    },
+    "Sketch": {
+      "responsibilities": [
+        "Deliver UI/UX components",
+        "Validate responsive layouts",
+        "Align designs with style guidelines"
+      ],
+      "deliveryExpectations": [
+        "Wireframes",
+        "Design Tokens (Colors, Typography, Spacing)",
+        "Interactive Prototypes"
+      ]
+    },
+    "Check": {
+      "responsibilities": [
+        "Perform cross-device testing",
+        "Validate NFT minting functionality",
+        "Confirm MetaMask and Wallet Connect operations"
+      ],
+      "deliveryExpectations": [
+        "Bug Reports",
+        "Pass/Fail QA Checklists",
+        "Runtime Issue Logs"
+      ]
+    }
+  }
+}

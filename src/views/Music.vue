@@ -1,6 +1,6 @@
-<!-- Karma-mall.vue -->
+<!-- src/views/Music.vue -->
 <template>
-  <div class="karma-mall bg-black text-white min-h-screen flex p-6">
+  <div class="music-page bg-black text-white min-h-screen flex p-6">
     <!-- Particles.js Background -->
     <div id="particles-js" class="particles"></div>
 
@@ -11,6 +11,7 @@
         :key="link.name"
         :to="link.path"
         class="nav-orb"
+        active-class="active"
       >
         {{ link.name }}
       </router-link>
@@ -18,225 +19,335 @@
 
     <!-- Main Content -->
     <div class="main-content">
-      <div class="tablet-container">
-        <!-- WaveSurfer Player -->
-        <div class="music-player">
-          <div id="waveform" ref="waveform"></div>
-          <div class="timebar">
-            <span>{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
-          </div>
-          <div class="now-playing">{{ activeTrack ? `Now Playing: ${activeTrack.title}` : 'Select a track to play' }}</div>
-          <div class="player-controls">
-            <button @click="prevTrack">Prev</button>
-            <button @click="playPause">{{ isPlaying ? 'Pause' : 'Play' }}</button>
-            <button @click="nextTrack">Next</button>
-          </div>
-          <!-- Track List -->
-          <ul class="track-list">
+      <!-- Playlist + Avatar Section -->
+      <div class="playlist-machine">
+        <!-- Avatar Orb -->
+        <div class="orb avatar-orb" @click="triggerAvatar">
+          <video
+            ref="avatarVideo"
+            class="avatar-video"
+            src="/avatars/avatar-priestsw.mp4"
+            autoplay
+            loop
+            muted
+            playsinline
+          ></video>
+        </div>
+
+        <!-- Current Playlist Box -->
+        <div class="playlist-container section">
+          <h2 class="section-title">Playlist</h2>
+          <ul class="playlist-list">
             <li
-              v-for="track in tracks"
-              :key="track.id"
-              @click="selectTrack(track)"
-              :class="{ active: activeTrack?.id === track.id }"
+              v-for="song in playlist"
+              :key="song.id"
+              class="playlist-item"
             >
-              {{ track.title }}
+              <span class="song-title">{{ song.title }}</span>
+              <audio
+                :src="song.src"
+                controls
+                class="song-audio"
+                @play="onSongPlay"
+              ></audio>
             </li>
           </ul>
         </div>
       </div>
 
-      <!-- Visual Elements -->
-      <div class="elements-container">
-        <div class="sun-group-container">
-          <img src="/images/sun-group.svg" alt="Sun Group" class="sun-group" />
+      <!-- Beat Selection + Recording Section -->
+      <div class="tablet-container">
+        <!-- Beat Selection -->
+        <div class="section">
+          <h2 class="section-title">Select a Beat</h2>
+          <select v-model="selectedBeatId" class="beat-select">
+            <option disabled value="">-- Choose a Beat --</option>
+            <option
+              v-for="beat in beats"
+              :key="beat.id"
+              :value="beat.id"
+            >
+              {{ beat.title }}
+            </option>
+          </select>
+          <div v-if="currentBeat" class="beat-controls">
+            <audio
+              ref="beatAudio"
+              :src="currentBeat.src"
+              preload="metadata"
+              @play="onSongPlay"
+            ></audio>
+            <button @click="toggleBeatPlayback" class="control-button">
+              {{ isBeatPlaying ? 'Pause Beat' : 'Play Beat' }}
+            </button>
+            <span class="beat-duration">
+              {{ formatTime(beatCurrentTime) }} / {{ formatTime(beatDuration) }}
+            </span>
+          </div>
         </div>
-        <img src="/images/planetary.png" alt="Planet" class="planetary" />
-        <img src="/images/remote-player.svg" alt="Remote Control" class="remote-player" />
+
+        <!-- Recording Controls -->
+        <div class="section">
+          <h2 class="section-title">Record Your Audio</h2>
+          <div class="record-controls">
+            <button
+              @click="startRecording"
+              :disabled="isRecording || !micSupported"
+              class="control-button"
+            >
+              Start Recording
+            </button>
+            <button
+              @click="stopRecording"
+              :disabled="!isRecording"
+              class="control-button"
+            >
+              Stop Recording
+            </button>
+          </div>
+          <div v-if="!micSupported" class="error-text">
+            Microphone access is not supported in this browser.
+          </div>
+          <div v-if="recordedAudioURL" class="recorded-playback">
+            <h3 class="playback-title">Your Recording</h3>
+            <audio
+              :src="recordedAudioURL"
+              controls
+              class="playback-audio"
+            ></audio>
+          </div>
+        </div>
       </div>
     </div>
-
-    <!-- Track Orbs (Right Side) -->
-    <nav class="nav-orb-container right">
-      <button
-        v-for="track in tracks"
-        :key="track.id"
-        @click="selectTrack(track)"
-        class="nav-orb"
-        :class="{ active: activeTrack?.id === track.id }"
-      >
-        {{ track.title.split(' ').slice(0, 2).join(' ') }}
-      </button>
-    </nav>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import WaveSurfer from 'wavesurfer.js';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 
-interface Track {
-  id: number;
-  title: string;
-  src: string;
-}
-
-// Navigation links (left orbs)
+// 1) Navigation links (left-side orbs)
 const navLinks = [
   { name: 'Home', path: '/' },
   { name: 'Episodes', path: '/episodes' },
-  { name: 'Games', path: '/games' },
-];
+  { name: 'Games', path: '/games' }
+]
 
-
-// Tracks (right orbs and list)
-const tracks = ref<Track[]>([
+// 2) Playlist (existing tracks)
+interface Song {
+  id: number
+  title: string
+  src: string
+}
+const playlist = ref<Song[]>([
   { id: 1, title: 'Kick Back and Chill', src: '/audio/Kick-Back-and-Chill.mp3' },
-  { id: 2, title: 'We Gone Ball', src: '/audio/We-Gone-Ball.mp3' },
-  { id: 3, title: 'Really Wanna See', src: '/audio/Really-Wanna-See.mp3' },
-  { id: 4, title: 'Why Not', src: '/audio/Why-Not.mp3' },
-  { id: 5, title: 'On Me', src: '/audio/murder1.mp3' },
-]);
+  { id: 2, title: 'We Gone Ball',        src: '/audio/We-Gone-Ball.mp3' },
+  { id: 3, title: 'Really Wanna See',    src: '/audio/Really-Wanna-See.mp3' },
+  { id: 4, title: 'Why Not',             src: '/audio/Why-Not.mp3' },
+  { id: 5, title: 'On Me',               src: '/audio/murder1.mp3' }
+])
 
-// Player state
-const waveform = ref<HTMLElement | null>(null);
-const activeTrack = ref<Track | null>(null);
-const isPlaying = ref(false);
-const currentTime = ref(0);
-const duration = ref(0);
-let wavesurfer: WaveSurfer | null = null;
+// 3) Beats for user to choose (placeholders)
+interface Beat {
+  id: number
+  title: string
+  src: string
+}
+const beats = ref<Beat[]>([
+  { id: 1, title: 'Placeholder Beat 1', src: '/audio/placeholder1.mp3' },
+  { id: 2, title: 'Placeholder Beat 2', src: '/audio/placeholder2.mp3' },
+  { id: 3, title: 'Placeholder Beat 3', src: '/audio/placeholder3.mp3' }
+])
 
-const initWaveSurfer = () => {
-  if (waveform.value) {
-    wavesurfer = WaveSurfer.create({
-      container: waveform.value,
-      waveColor: '#bb86fc', // Debug: Change wave color (was #87CEEB)
-      progressColor: '#6200ea', // Debug: Change progress color (was #FFD700)
-      // backgroundColor: '#1a1a1a', // Debug: Removed invalid property
-      cursorColor: '#6200ea', // Debug: Change cursor color (was #FFD700)
-      height: 100, // Debug: Adjust height (was 150)
-      barWidth: 2,
-      barGap: 2,
-      barRadius: 3,
-      // Debug: No 'responsive' as it's default; add 'responsive: true as any' if needed
-    });
+// 4) Beat selection state
+const selectedBeatId = ref<number | ''>('')
+const currentBeat = computed(() => {
+  return beats.value.find(b => b.id === selectedBeatId.value) || null
+})
 
-    wavesurfer.on('ready', () => {
-      duration.value = wavesurfer?.getDuration() || 0;
-      if (activeTrack.value) {
-        wavesurfer?.play();
-        isPlaying.value = true;
-      }
-    });
+// 5) Beat playback refs/state
+const beatAudio = ref<HTMLAudioElement | null>(null)
+const isBeatPlaying = ref(false)
+const beatDuration = ref(0)
+const beatCurrentTime = ref(0)
+let beatTimeUpdateInterval: number | null = null
 
-    wavesurfer.on('audioprocess', () => {
-      currentTime.value = wavesurfer?.getCurrentTime() || 0;
-    });
-
-    wavesurfer.on('finish', () => {
-      isPlaying.value = false;
-      nextTrack();
-    });
-
-    wavesurfer.on('error', (err) => {
-      console.error('WaveSurfer error:', err); // Debug: Check audio loading issues
-    });
-  }
-};
-
-const formatTime = (seconds: number) => {
-  const min = Math.floor(seconds / 60);
-  const sec = Math.floor(seconds % 60);
-  return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-};
-
-const selectTrack = (track: Track) => {
-  if (activeTrack.value?.id !== track.id) {
-    activeTrack.value = track;
-    if (wavesurfer) {
-      wavesurfer.load(track.src);
-    }
+const toggleBeatPlayback = () => {
+  if (!beatAudio.value) return
+  if (isBeatPlaying.value) {
+    beatAudio.value.pause()
   } else {
-    playPause();
+    beatAudio.value.play()
   }
-};
+}
 
-const playPause = () => {
-  if (wavesurfer) {
-    if (isPlaying.value) {
-      wavesurfer.pause();
-      isPlaying.value = false;
-    } else if (activeTrack.value) {
-      wavesurfer.play();
-      isPlaying.value = true;
+const onBeatPlay = () => {
+  isBeatPlaying.value = true
+  beatTimeUpdateInterval = window.setInterval(() => {
+    if (beatAudio.value) {
+      beatCurrentTime.value = beatAudio.value.currentTime
     }
+  }, 200)
+}
+
+const onBeatPauseOrEnd = () => {
+  isBeatPlaying.value = false
+  if (beatTimeUpdateInterval !== null) {
+    clearInterval(beatTimeUpdateInterval)
+    beatTimeUpdateInterval = null
   }
-};
+}
 
-const prevTrack = () => {
-  if (!activeTrack.value) return;
-  const currentIndex = tracks.value.findIndex(t => t.id === activeTrack.value!.id);
-  const prevIndex = (currentIndex - 1 + tracks.value.length) % tracks.value.length;
-  selectTrack(tracks.value[prevIndex]);
-};
+// When the user picks a new beat, load its metadata
+watch(
+  currentBeat,
+  (newBeat) => {
+    if (beatAudio.value) {
+      beatAudio.value.pause()
+      isBeatPlaying.value = false
+      beatCurrentTime.value = 0
+      if (newBeat) {
+        beatAudio.value.src = newBeat.src
+        beatAudio.value.load()
+        beatAudio.value.addEventListener('loadedmetadata', () => {
+          beatDuration.value = beatAudio.value!.duration
+        })
+      }
+    }
+  },
+  { immediate: true }
+)
 
-const nextTrack = () => {
-  if (!activeTrack.value) return;
-  const currentIndex = tracks.value.findIndex(t => t.id === activeTrack.value!.id);
-  const nextIndex = (currentIndex + 1) % tracks.value.length;
-  selectTrack(tracks.value[nextIndex]);
-};
+// 6) Recording state
+const micSupported = ref(true)
+const isRecording = ref(false)
+const recordedChunks = ref<Blob[]>([])
+const recordedAudioURL = ref<string | null>(null)
+let mediaRecorder: MediaRecorder | null = null
 
-// Particles.js initialization
-const initParticles = () => {
-  (window as any).particlesJS('particles-js', {
+const startRecording = async () => {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    micSupported.value = false
+    return
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    mediaRecorder = new MediaRecorder(stream)
+    recordedChunks.value = []
+
+    mediaRecorder.ondataavailable = (e: BlobEvent) => {
+      if (e.data && e.data.size > 0) {
+        recordedChunks.value.push(e.data)
+      }
+    }
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks.value, { type: 'audio/webm' })
+      recordedAudioURL.value = URL.createObjectURL(blob)
+      // TODO: upload `blob` to Supabase Storage or external CDN here
+    }
+
+    mediaRecorder.start()
+    isRecording.value = true
+  } catch (err) {
+    console.error('Microphone access error:', err)
+    micSupported.value = false
+  }
+}
+
+const stopRecording = () => {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop()
+  }
+  isRecording.value = false
+}
+
+// 7) Time formatting helper (M:SS)
+const formatTime = (seconds: number) => {
+  const min = Math.floor(seconds / 60)
+  const sec = Math.floor(seconds % 60)
+  return `${min}:${sec < 10 ? '0' : ''}${sec}`
+}
+
+// 8) Pause all other audio when a new one plays
+const onSongPlay = (event: Event) => {
+  const playingAudio = event.target as HTMLAudioElement
+  // Pause other playlist audios
+  document.querySelectorAll<HTMLAudioElement>('.song-audio').forEach(el => {
+    if (el !== playingAudio) el.pause()
+  })
+  // Also pause beat audio if playing
+  if (beatAudio.value && beatAudio.value !== playingAudio) {
+    beatAudio.value.pause()
+  }
+}
+
+// 9) Avatar orb logic (reuse home-style orb)
+const avatarVideo = ref<HTMLVideoElement | null>(null)
+const triggerAvatar = () => {
+  if (avatarVideo.value) {
+    avatarVideo.value.currentTime = 0
+    avatarVideo.value.play()
+  }
+}
+
+onMounted(() => {
+  // Beat audio event listeners
+  if (beatAudio.value) {
+    beatAudio.value.addEventListener('play', onBeatPlay)
+    beatAudio.value.addEventListener('pause', onBeatPauseOrEnd)
+    beatAudio.value.addEventListener('ended', onBeatPauseOrEnd)
+  }
+
+  // Initialize particles if available
+  ;(window as any).particlesJS?.('particles-js', {
     particles: {
-      number: { value: 100, density: { enable: true, value_area: 800 } }, // Debug: Increased for starry effect
-      color: { value: '#bb86fc' }, // Debug: Purple stars
-      shape: { type: 'circle' }, // Debug: Circle for star-like dots
-      opacity: { value: 0.8, random: true }, // Debug: Slightly brighter
-      size: { value: 2, random: true }, // Debug: Smaller for stars
-      line_linked: { enable: false }, // Debug: No lines for starry look
-      move: { enable: true, speed: 1, direction: 'none', random: true, straight: false, out_mode: 'out' },
+      number: { value: 80, density: { enable: true, value_area: 800 } },
+      color: { value: '#bb86fc' },
+      shape: { type: 'circle' },
+      opacity: { value: 0.7, random: true },
+      size: { value: 2, random: true },
+      line_linked: { enable: false },
+      move: { enable: true, speed: 1, random: true, out_mode: 'out' }
     },
     interactivity: {
       detect_on: 'canvas',
       events: { onhover: { enable: false }, onclick: { enable: false }, resize: true },
-      modes: { repulse: { distance: 100, duration: 0.4 } },
+      modes: { repulse: { distance: 100, duration: 0.4 } }
     },
-    retina_detect: true,
-  });
-};
-
-onMounted(() => {
-  initWaveSurfer();
-  initParticles();
-  // Debug: Load first track on mount; comment out if not desired
-  if (tracks.value.length > 0) {
-    selectTrack(tracks.value[0]);
-  }
-});
+    retina_detect: true
+  })
+})
 
 onUnmounted(() => {
-  if (wavesurfer) {
-    wavesurfer.destroy();
+  if (beatTimeUpdateInterval !== null) {
+    clearInterval(beatTimeUpdateInterval)
   }
-});
+  if (beatAudio.value) {
+    beatAudio.value.removeEventListener('play', onBeatPlay)
+    beatAudio.value.removeEventListener('pause', onBeatPauseOrEnd)
+    beatAudio.value.removeEventListener('ended', onBeatPauseOrEnd)
+  }
+})
 </script>
 
 <style scoped>
-/* Main container: Flex layout for orbs and content */
-.music {
-  background: #000;
-  /* Debug: Adjust background (e.g., #111) for contrast */
+/* ------------------------------------------------------------
+   Page Container
+   ------------------------------------------------------------ */
+.music-page {
   font-family: 'Inter', sans-serif;
+  position: relative;
+  display: flex;
   flex-direction: row;
   align-items: flex-start;
   justify-content: center;
-  position: relative;
-  /* Debug: Ensure position: relative for z-index */
+  overflow: hidden;
 }
 
-/* Particles.js background */
+/* ------------------------------------------------------------
+   Particles Background
+   ------------------------------------------------------------ */
 .particles {
   position: fixed;
   top: 0;
@@ -244,294 +355,281 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   z-index: 1;
-  /* Debug: Adjust z-index (e.g., 0) if particles obscure content */
 }
 
-/* Navigation Orbs: Vertical on left and right */
+/* ------------------------------------------------------------
+   Left Navigation Orbs
+   ------------------------------------------------------------ */
 .nav-orb-container {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  /* Debug: Adjust gap (e.g., 1rem, 2rem) for orb spacing */
   position: fixed;
   top: 2rem;
-  /* Debug: Adjust top (e.g., 1rem, 3rem) for position */
   z-index: 10;
-  /* Debug: Increase z-index (e.g., 20) if orbs hidden */
 }
 .nav-orb-container.left {
   left: 1rem;
-  /* Debug: Adjust left (e.g., 0.5rem, 2rem) */
-}
-.nav-orb-container.right {
-  right: 1rem;
-  /* Debug: Adjust right (e.g., 0.5rem, 2rem) */
 }
 .nav-orb {
-  display: flex;
   width: 60px;
   height: 60px;
   background-color: #bb86fc;
-  /* Debug: Change #bb86fc for orb background */
   border-radius: 50%;
+  display: flex;
   align-items: center;
   justify-content: center;
-  text-decoration: none;
   color: #fff;
-  /* Debug: Change #fff for orb text */
-  font-size: 0.75em;
+  font-size: 0.75rem;
+  text-decoration: none;
   text-align: center;
-  transition: transform 0.3s, background-color 0.3s;
   cursor: pointer;
+  transition: transform 0.3s, background-color 0.3s;
 }
 .nav-orb:hover {
   transform: scale(1.2);
   background-color: #6200ea;
-  /* Debug: Change #6200ea for hover */
 }
 .nav-orb.active {
   background-color: #6200ea;
-  /* Debug: Change #6200ea for active */
   box-shadow: 0 0 10px rgba(187, 134, 252, 0.5);
-  /* Debug: Adjust rgba(187, 134, 252, 0.5) for glow */
 }
 
-/* Main content: Centered player */
+/* ------------------------------------------------------------
+   Main Content Area
+   ------------------------------------------------------------ */
 .main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   margin: 0 auto;
-  padding-left: 5rem;
-  padding-right: 5rem;
-  /* Debug: Adjust padding (e.g., 4rem, 6rem) to clear orbs */
+  padding: 0 5rem;
   max-width: 900px;
-  /* Debug: Adjust max-width (e.g., 800px, 1000px) */
+  z-index: 5;
 }
 
-/* Tablet container */
-.tablet-container {
+/* ------------------------------------------------------------
+   Playlist + Avatar Wrapper
+   ------------------------------------------------------------ */
+.playlist-machine {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
   width: 100%;
   max-width: 800px;
-  /* Debug: Adjust max-width (e.g., 700px, 900px) */
+  margin-bottom: 2rem;
+}
+@media (max-width: 768px) {
+  .playlist-machine {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+/* ------------------------------------------------------------
+   Avatar Orb Styles
+   ------------------------------------------------------------ */
+.avatar-orb {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #1f1f1f 60%, #000000 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.avatar-orb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 30px #00ffff, 0 0 60px #00ffff;
+}
+.avatar-video {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* ------------------------------------------------------------
+   Playlist Container (styled like tablet-container)
+   ------------------------------------------------------------ */
+.playlist-container {
   background: #1a1a1a;
-  /* Debug: Change #1a1a1a for tablet background */
   border-radius: 1rem;
   padding: 1.5rem;
   box-shadow: 0 0 20px rgba(187, 134, 252, 0.3);
-  /* Debug: Adjust rgba(187, 134, 252, 0.3) for shadow */
   border: 4px solid #333;
-  /* Debug: Change #333 for border */
-}
-
-/* Music player */
-.music-player {
   width: 100%;
 }
-#waveform {
-  width: 100%;
-  background: rgba(187, 134, 252, 0.1);
-  /* Debug: Change rgba(187, 134, 252, 0.1) for waveform background */
-}
-.timebar {
-  margin: 0.5rem 0;
-  text-align: center;
-  color: #bb86fc;
-  /* Debug: Change #bb86fc for time text */
-  font-size: 0.9rem;
-}
-.now-playing {
-  font-size: 1rem;
-  color: #bb86fc;
-  /* Debug: Change #bb86fc for text */
-  margin: 1rem 0;
-  text-align: center;
-}
-.player-controls {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  /* Debug: Adjust gap (e.g., 0.5rem, 1.5rem) */
-  margin: 1rem 0;
-}
-.player-controls button {
-  padding: 0.5rem 1rem;
-  background: #bb86fc;
-  /* Debug: Change #bb86fc for button */
-  border: none;
-  border-radius: 20px;
-  color: #121212;
-  /* Debug: Change #121212 for button text */
-  cursor: pointer;
-  transition: transform 0.3s;
-}
-.player-controls button:hover {
-  transform: scale(1.05);
-  /* Debug: Adjust scale (e.g., 1.1) */
-}
 
-/* Track list */
-.track-list {
+/* ------------------------------------------------------------
+   Playlist Section Styles
+   ------------------------------------------------------------ */
+.section-title {
+  font-size: 1.5rem;
+  color: #bb86fc;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+.playlist-list {
   list-style: none;
-  margin: 1rem 0;
-  max-height: 200px;
-  /* Debug: Adjust max-height (e.g., 150px, 250px) */
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #bb86fc #222;
-  /* Debug: Change #bb86fc for thumb, #222 for track */
+  padding: 0;
 }
-.track-list::-webkit-scrollbar {
-  width: 8px;
-  /* Debug: Adjust width (e.g., 6px, 10px) */
+.playlist-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
-.track-list::-webkit-scrollbar-track {
+.song-title {
+  flex: 1;
+  font-size: 1rem;
+}
+.song-audio {
+  width: 200px;
+  outline: none;
+  border: none;
   background: #222;
-  /* Debug: Change #222 for track */
-}
-.track-list::-webkit-scrollbar-thumb {
-  background: #bb86fc;
-  /* Debug: Change #bb86fc for thumb */
   border-radius: 4px;
 }
-.track-list li {
-  height: 40px;
-  line-height: 40px;
-  padding: 0 0.5rem;
-  color: #fff;
-  /* Debug: Change #fff for text */
-  cursor: pointer;
-  transition: background 0.3s;
-}
-.track-list li:hover {
-  background: rgba(187, 134, 252, 0.2);
-  /* Debug: Change rgba(187, 134, 252, 0.2) for hover */
-}
-.track-list li.active {
-  background: rgba(187, 134, 252, 0.3);
-  /* Debug: Change rgba(187, 134, 252, 0.3) for active */
-  color: #bb86fc;
-  /* Debug: Change #bb86fc for active text */
+
+/* ------------------------------------------------------------
+   Beat Selection + Recording Container
+   ------------------------------------------------------------ */
+.tablet-container {
+  width: 100%;
+  max-width: 800px;
+  background: #1a1a1a;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 0 20px rgba(187, 134, 252, 0.3);
+  border: 4px solid #333;
+  margin-bottom: 2rem;
 }
 
-/* Visual elements */
-.elements-container {
-  margin-top: 2rem;
-  /* Debug: Adjust margin-top (e.g., 1rem, 3rem) */
+/* ------------------------------------------------------------
+   Beat Selection Styles
+   ------------------------------------------------------------ */
+.beat-select {
+  width: 100%;
+  padding: 0.5rem;
+  background: #222;
+  color: #fff;
+  border: 2px solid #444;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+.beat-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+.control-button {
+  background-color: #bb86fc;
+  color: #121212;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s, transform 0.2s;
+}
+.control-button:hover {
+  background-color: #6200ea;
+  transform: scale(1.05);
+}
+.beat-duration {
+  font-size: 0.9rem;
+  color: #fff;
+}
+
+/* ------------------------------------------------------------
+   Recording Controls Styles
+   ------------------------------------------------------------ */
+.record-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.error-text {
+  color: #f44336;
   text-align: center;
 }
-.sun-group-container {
-  position: relative;
+.recorded-playback {
+  margin-top: 1rem;
+  text-align: center;
 }
-.sun-group {
-  width: 320px;
-  /* Debug: Adjust width (e.g., 280px, 360px) */
-  height: auto;
-  display: block;
-  margin: 1rem auto;
+.playback-title {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
 }
-.planetary {
-  width: 300px;
-  /* Debug: Adjust width (e.g., 260px, 340px) */
-  height: auto;
-  display: block;
-  margin: 1rem auto;
-}
-.remote-player {
-  width: 180px;
-  /* Debug: Adjust width (e.g., 160px, 200px) */
-  height: auto;
-  display: block;
-  margin: 1rem auto;
+.playback-audio {
+  width: 100%;
+  outline: none;
+  border: none;
+  border-radius: 8px;
+  background: #222;
 }
 
-/* Responsive adjustments */
+/* ------------------------------------------------------------
+   Responsive Adjustments
+   ------------------------------------------------------------ */
 @media (max-width: 768px) {
-  .music {
+  .main-content {
+    padding: 0 1rem;
+  }
+  .playlist-container,
+  .tablet-container {
+    max-width: 100%;
+    padding: 1rem;
+  }
+  .playlist-item {
     flex-direction: column;
-    /* Debug: Change to row if needed */
+    align-items: flex-start;
+  }
+  .song-audio {
+    width: 100%;
+  }
+  .beat-controls {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .control-button {
+    width: 100%;
+  }
+  .beat-duration {
+    margin-top: 0.5rem;
   }
   .nav-orb-container {
     position: static;
     flex-direction: row;
     justify-content: center;
     gap: 1rem;
-    /* Debug: Adjust gap (e.g., 0.5rem, 1.5rem) */
     margin-bottom: 1.5rem;
   }
-  .nav-orb-container.right {
-    margin-top: 1rem;
-    /* Debug: Adjust margin-top (e.g., 0.5rem, 1.5rem) */
-  }
-  .main-content {
-    margin: 0 auto;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    /* Debug: Adjust padding (e.g., 0.5rem, 2rem) */
-  }
-  .tablet-container {
-    max-width: 100%;
-    padding: 1rem;
-    /* Debug: Adjust padding (e.g., 0.5rem, 1.5rem) */
-  }
-  #waveform {
-    height: 80px;
-    /* Debug: Adjust height (e.g., 60px, 100px) */
-  }
-  .timebar {
-    font-size: 0.8rem;
-    /* Debug: Adjust font-size (e.g., 0.7rem, 0.9rem) */
-  }
-  .now-playing {
-    font-size: 0.9rem;
-    /* Debug: Adjust font-size (e.g., 0.8rem, 1rem) */
-  }
-  .player-controls button {
-    padding: 0.4rem 0.8rem;
-    /* Debug: Adjust padding */
-  }
-  .track-list li {
-    font-size: 0.9rem;
-    /* Debug: Adjust font-size (e.g., 0.8rem, 1rem) */
-  }
-  .sun-group {
-    width: 280px;
-    /* Debug: Adjust width (e.g., 240px, 320px) */
-  }
-  .planetary {
-    width: 260px;
-    /* Debug: Adjust width (e.g., 220px, 300px) */
-  }
-  .remote-player {
-    width: 160px;
-    /* Debug: Adjust width (e.g., 140px, 180px) */
-  }
 }
+
 @media (max-width: 480px) {
   .nav-orb {
     width: 50px;
     height: 50px;
-    font-size: 0.7em;
-    /* Debug: Adjust size/font */
+    font-size: 0.7rem;
   }
-  .track-list li {
-    font-size: 0.8rem;
-    height: 36px;
-    line-height: 36px;
-    /* Debug: Adjust for smaller tracks */
+  .section-title {
+    font-size: 1.25rem;
   }
-  .sun-group {
-    width: 240px;
-    /* Debug: Adjust width (e.g., 200px, 280px) */
-  }
-  .planetary {
-    width: 220px;
-    /* Debug: Adjust width (e.g., 180px, 260px) */
-  }
-  .remote-player {
-    width: 140px;
-    /* Debug: Adjust width (e.g., 120px, 160px) */
+  .control-button {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
   }
 }
 </style>

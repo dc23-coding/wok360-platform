@@ -1,38 +1,33 @@
+<template>
+  <section class="video-hero">
+    <video id="landing-video" autoplay muted playsinline>
+      <source src="@/assets/video/Harvest-intro.mp4" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
+
+    <div class="overlay"></div>
+
+    <div class="hero-content">
+      <h1>Welcome to Metaverse Media</h1>
+      <p>Immerse yourself in the future of media.</p>
+      <button class="btn" @click="showModal = true">Enter</button>
+    </div>
+
+    <NavigationModal v-if="showModal" @close="showModal = false" />
+  </section>
+</template>
+
 <script>
-import NavigationModal from '@/components/NavigationModal.vue';
+import NavigationModal from '@/components/NavigationModal.vue'
 
 export default {
   components: { NavigationModal },
   data() {
     return {
-      showModal: false,
-      videoUrl: '',
-    };
-  },
-  async mounted() {
-    try {
-      const { data, error } = await supabase
-        .storage
-        .from('videos')
-        .getPublicUrl('Harvest-intro.mp4');
-      if (error) {
-        console.error('Error loading video:', error);
-      } else {
-        console.log('Video URL:', data.publicUrl); // Should log the Supabase URL
-        this.videoUrl = data.publicUrl;
-      }
-    } catch (err) {
-      console.error('Failed to fetch video URL:', err);
+      showModal: false
     }
-  },
-  methods: {
-    openModal() {
-      console.log('Button clicked, showModal:', this.showModal);
-      this.showModal = true;
-    },
-    handleVideoError(e) {
-      console.error('Video failed to load:', e);
-    },
-  },
-};
+  }
+}
 </script>
+
+<style scoped src="@/styles/landing.css"></style>

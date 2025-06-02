@@ -1,12 +1,10 @@
 <template>
   <div>
     <!-- Theme Toggle Button -->
-    <button @click="toggleTheme" class="fixed top-2 left-2 z-50 nav-orb">
-      Toggle Theme
-    </button>
+   
 
     <!-- Ambient Canvas Particle Layer -->
-    <CanvasParticles />
+   
 
     <!-- App Router Content -->
     <RouterView />
@@ -16,7 +14,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { RouterView } from 'vue-router'
-import CanvasParticles from '@/components/CanvasParticles.vue'
+
 
 const currentTheme = ref('dark')
 
