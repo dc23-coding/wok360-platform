@@ -1,3 +1,4 @@
+// tsconfig.json
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
   "compilerOptions": {
@@ -16,6 +17,13 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.vue", "src/components/Mureka/StudioHome.vue", "src/components/Mureka/RecordInput.vue", "src/components/Mureka/TextInput.vue"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "src/env.d.ts",
+    "src/components/Mureka/StudioHome.vue",
+    "src/components/Mureka/RecordInput.vue",
+    "src/components/Mureka/TextInput.vue"
+  ],
   "exclude": ["node_modules"]
 }
