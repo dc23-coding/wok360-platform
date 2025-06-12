@@ -3,12 +3,27 @@
     <!-- Background Particles -->
     <div class="particles"></div>
 
-    <!-- Top Tabs -->
-    <div class="menu-bar">
-      <router-link to="/episodes" class="menu-tab">Episodes</router-link>
-      <router-link to="/music" class="menu-tab">Music</router-link>
-      <router-link to="/games" class="menu-tab">Games</router-link>
-    </div>
+    <!-- Top Tabs (Guest Lock Enabled) -->
+<div class="menu-bar">
+  <router-link
+    :to="user ? '/dashboard' : '/'"
+    class="menu-tab"
+  >
+    {{ user ? 'Dashboard' : 'Home' }}
+  </router-link>
+
+  <template v-if="user">
+    <router-link to="/episodes" class="menu-tab">Episodes</router-link>
+    <router-link to="/music" class="menu-tab">Music</router-link>
+    <router-link to="/games" class="menu-tab">Games</router-link>
+  </template>
+
+  <template v-else>
+    <span class="menu-tab disabled">Episodes</span>
+    <span class="menu-tab disabled">Music</span>
+    <span class="menu-tab disabled">Games</span>
+  </template>
+</div>
 
     <!-- 3-Orb Layout -->
     <div class="orb-row">
@@ -26,8 +41,13 @@
       </div>
 
       <!-- Center Orb: Portal -->
-      <div class="orb portal-orb pulse" @click="enterPortal">
-        <span class="portal-text">Enter Portal</span>
+      <div class="orb portal-orb pulse" @click="enterPortal" @mouseenter="showTooltip = true" @mouseleave="showTooltip = false">
+        <span class="portal-text">{{ user ? 'Explore Portal' : 'Sign In to Explore' }}</span>
+        <transition name="fade">
+          <div v-if="showTooltip" class="portal-tooltip">
+            {{ user ? 'Discover random content' : 'Sign in for full access' }}
+          </div>
+        </transition>
       </div>
 
       <!-- Right Orb: Shopify Products -->
@@ -63,8 +83,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/useAuthStore'
+
+const auth = useAuthStore()
+const router = useRouter()
+const avatarVideo = ref<HTMLVideoElement | null>(null)
+const showTooltip = ref(false)
+const user = ref<any>(null)
+const loading = ref(false)
 
 interface Product {
   name: string
@@ -73,58 +102,93 @@ interface Product {
   url: string
 }
 
-const router = useRouter()
-const avatarVideo = ref<HTMLVideoElement | null>(null)
-
 const products: Product[] = [
   {
     name: 'WC-Jacket',
-    img: '/products/branded-jacket-1.png',
+    img: '/products/branded-bomber-patched.png',
     price: '$70.00',
-    url: 'https://kg4bp4-ae.myshopify.com/products/unisex-bomber-jacket'
+    url: 'https://worldofkarma360.myshopify.com/products/unisex-bomber-jacket'
   },
   {
     name: 'WC-Sneakers',
     img: '/products/branded-canvas-1.png',
     price: '$65.00',
-    url: 'https://kg4bp4-ae.myshopify.com/products/men-s-lace-up-canvas-shoes'
+    url: 'https://worldofkarma360.myshopify.com/products/men-s-lace-up-canvas-shoes'
   },
   {
     name: 'WC-TShirts',
     img: '/products/branded-tshirt-1.png',
     price: '$30.00',
-    url: 'https://kg4bp4-ae.myshopify.com/products/women-s-basic-softstyle-t-shirt'
+    url: 'https://worldofkarma360.myshopify.com/products/women-s-basic-softstyle-t-shirt-2'
   },
   {
     name: 'WC-Sweater',
     img: '/products/branded-sweater-fly.png',
     price: '$30.50',
-    url: 'https://kg4bp4-ae.myshopify.com/products/unisex-premium-sweatshirt?variant=51386017349946'
+    url: 'https://worldofkarma360.myshopify.com/products/unisex-premium-sweatshirt'
   },
   {
     name: 'WC-Skirt',
     img: '/products/branded-dress-3.png',
     price: '$48.99',
-    url: 'https://kg4bp4-ae.myshopify.com/products/skater-dress'
+    url: 'https://worldofkarma360.myshopify.com/products/skater-dress-2'
   },
   {
     name: 'WC-Swimwear',
     img: '/products/branded-swimwear-7.png',
     price: '$39.49',
-    url: 'https://kg4bp4-ae.myshopify.com/products/one-piece-swimsuit'
+    url: 'https://worldofkarma360.myshopify.com/products/one-piece-swimsuit'
+  },
+  {
+    name: 'WC-SportsBra',
+    img: '/products/branded-sportsbra-23.png',
+    price: '$37.50',
+    url: 'https://worldofkarma360.myshopify.com/products/padded-sports-bra'
+  },
+  {
+    name: 'WC-Hoodie',
+    img: '/products/branded-hoodie-savage-1.png',
+    price: '$48.00',
+    url: 'https://worldofkarma360.myshopify.com/products/premium-eco-hoodie'
+  },
+  {
+    name: 'WC-Slides',
+    img: '/products/branded-mens-slides.png',
+    price: '$34.50',
+    url: 'https://worldofkarma360.myshopify.com/products/men-s-slides'
   }
 ]
 
 const currentIndex = ref(0)
+
+onMounted(async () => {
+  try {
+    loading.value = true
+    const { data } = await supabase.auth.getSession()
+    user.value = data.session?.user
+  } catch (error) {
+    console.error('Error checking auth state:', error)
+  } finally {
+    loading.value = false
+  }
+
+  supabase.auth.onAuthStateChange((event, session) => {
+    user.value = session?.user
+  })
+})
 
 const cycleProduct = () => {
   currentIndex.value = (currentIndex.value + 1) % products.length
 }
 
 const enterPortal = () => {
-  const pages = ['/episodes', '/music', '/games']
-  const randomPage = pages[Math.floor(Math.random() * pages.length)]
-  router.push(randomPage)
+  if (user.value) {
+    const pages = ['/episodes', '/music', '/games']
+    const randomPage = pages[Math.floor(Math.random() * pages.length)]
+    router.push(randomPage)
+  } else {
+    router.push('/login')
+  }
 }
 
 const triggerAvatar = () => {
@@ -160,6 +224,42 @@ const triggerAvatar = () => {
   z-index: -1;
 }
 
+/* Auth Status */
+.auth-status {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-status.logged-in {
+  background: rgba(0, 255, 255, 0.2);
+  color: #00ffff;
+}
+
+.sign-out-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sign-out-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 /* Top Tabs */
 .menu-bar {
   display: flex;
@@ -176,11 +276,13 @@ const triggerAvatar = () => {
   padding: 10px 20px;
   border-radius: 8px;
   background-color: rgba(255, 255, 255, 0.05);
-  transition: background-color 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  text-decoration: none;
 }
 
 .menu-tab:hover {
   background-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }
 
 /* Orb Row Layout */
@@ -208,7 +310,7 @@ const triggerAvatar = () => {
   align-items: center;
   justify-content: center;
   box-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -225,22 +327,44 @@ const triggerAvatar = () => {
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
+  transition: transform 0.3s ease;
 }
-.avatar-orb {
-  background: radial-gradient(circle, #1f1f1f 60%, #000000 100%);
+
+.avatar-orb:hover .avatar-video {
+  transform: scale(1.05);
 }
-.avatar-orb:hover {
-  box-shadow: 0 0 30px #00ffff, 0 0 60px #00ffff;
-}
+
+/* Portal Orb */
 .portal-orb {
-  /* Example background gradient; adjust colors as desired */
   background: radial-gradient(circle, #1f1f1f 60%, #006666 100%);
 }
 
-.portal-orb .portal-text {
-  /* Bright text color */
+.portal-text {
   color: #ffffff;
   font-weight: bold;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  text-align: center;
+  padding: 0 10px;
+}
+
+.portal-orb:hover .portal-text {
+  transform: scale(1.1);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.portal-tooltip {
+  position: absolute;
+  bottom: -40px;
+  width: 200px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  text-align: center;
+  pointer-events: none;
+  backdrop-filter: blur(5px);
 }
 
 /* Portal Orb Pulse */
@@ -266,6 +390,11 @@ const triggerAvatar = () => {
   height: 80%;
   border-radius: 50%;
   object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.shopify-orb:hover .product-image {
+  transform: scale(1.05);
 }
 
 .shopify-orb .product-label {
@@ -278,6 +407,12 @@ const triggerAvatar = () => {
   color: #fff;
   text-align: center;
   line-height: 1.2;
+  transition: all 0.3s ease;
+}
+
+.shopify-orb:hover .product-label {
+  background: rgba(0, 0, 0, 0.8);
+  transform: translateY(-5px);
 }
 
 /* Buy Now Button */
@@ -294,11 +429,13 @@ const triggerAvatar = () => {
   font-size: 1rem;
   font-weight: bold;
   text-decoration: none;
-  transition: background-color 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .buy-button:hover {
   background-color: #00d4d4;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Footer */
@@ -309,6 +446,17 @@ footer {
   text-align: center;
   color: #888;
   font-size: 0.875rem;
+}
+
+/* Transition Effects */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
 /* Responsive Text Size */
@@ -326,6 +474,11 @@ footer {
   .buy-button {
     font-size: 0.9rem;
     padding: 10px 20px;
+  }
+
+  .auth-status {
+    font-size: 0.8rem;
+    padding: 6px 12px;
   }
 }
 
@@ -347,6 +500,32 @@ footer {
   .buy-button {
     font-size: 0.8rem;
     padding: 8px 16px;
+  }
+
+  .auth-status {
+    top: 10px;
+    right: 10px;
+    font-size: 0.7rem;
+  }
+
+  .auth-status span {
+  white-space: nowrap;
+}
+
+.auth-status button {
+  margin-left: 8px;
+}
+
+.menu-tab.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+
+
+  .orb-row {
+    gap: 4vw;
   }
 }
 </style>

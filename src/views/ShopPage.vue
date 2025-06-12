@@ -1,24 +1,25 @@
 <template>
   <div class="shop-page-container">
-    <h1 class="shop-page-title">Shop</h1>
-    <div class="product-details" v-if="product">
-      <img :src="product.img" :alt="product.name" class="shop-product-image" />
-      <h2 class="shop-product-name">{{ product.name }}</h2>
-      <p class="shop-product-price">{{ product.price }}</p>
-      <button class="shop-product-buy" @click="goToShopify">
-        Go to Shopify
-      </button>
-    </div>
-    <div v-else class="shop-loading">
-      Loading…
+    <h1 class="shop-page-title">Shop All Products</h1>
+    <div class="product-grid">
+      <div v-for="(product, index) in products" :key="index" class="product-card">
+        <img :src="product.img" :alt="product.name" class="product-image" />
+        <h2 class="product-name">{{ product.name }}</h2>
+        <p class="product-price">{{ product.price }}</p>
+        <a
+          :href="product.url"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="product-buy"
+        >
+          Buy Now
+        </a>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-
 interface Product {
   name: string
   img: string
@@ -26,45 +27,62 @@ interface Product {
   url: string
 }
 
-const route = useRoute()
-const product = ref<Product | null>(null)
-
-onMounted(() => {
-  // Grab the “index” param or “name” param (whichever you choose) from the route,
-  // then look up your product in the same list you defined in Home.vue.
-  const allProducts: Product[] = [
-    {
-      name: 'WC-Jacket',
-      img: '/products/branded-jacket-1.png',
-      price: '$70.00',
-      url: 'https://your-shopify-store.com/products/wc-jacket'
-    },
-    {
-      name: 'WC-Sneakers',
-      img: '/products/branded-canvas-1.png',
-      price: '$50.00',
-      url: 'https://your-shopify-store.com/products/wc-sneakers'
-    },
-    {
-      name: 'WC-TShirts',
-      img: '/products/branded-tshirt-1.png',
-      price: '$30.00',
-      url: 'https://your-shopify-store.com/products/wc-tshirt'
-    }
-  ]
-
-  // We passed “currentIndex” as a route param. Convert to number, find product:
-  const idx = parseInt(route.params.index as string, 10)
-  if (!isNaN(idx) && idx >= 0 && idx < allProducts.length) {
-    product.value = allProducts[idx]
+const products: Product[] = [
+  {
+    name: 'WC-Jacket',
+    img: '/products/branded-bomber-patched.png',
+    price: '$70.00',
+    url: 'https://worldofkarma360.myshopify.com/products/unisex-bomber-jacket'
+  },
+  {
+    name: 'WC-Sneakers',
+    img: '/products/branded-canvas-1.png',
+    price: '$65.00',
+    url: 'https://worldofkarma360.myshopify.com/products/men-s-lace-up-canvas-shoes'
+  },
+  {
+    name: 'WC-TShirts',
+    img: '/products/branded-tshirt-1.png',
+    price: '$30.00',
+    url: 'https://worldofkarma360.myshopify.com/products/women-s-basic-softstyle-t-shirt-2'
+  },
+  {
+    name: 'WC-Sweater',
+    img: '/products/branded-sweater-fly.png',
+    price: '$30.50',
+    url: 'https://worldofkarma360.myshopify.com/products/unisex-premium-sweatshirt'
+  },
+  {
+    name: 'WC-Skirt',
+    img: '/products/branded-dress-3.png',
+    price: '$48.99',
+    url: 'https://worldofkarma360.myshopify.com/products/skater-dress-2'
+  },
+  {
+    name: 'WC-Swimwear',
+    img: '/products/branded-swimwear-7.png',
+    price: '$39.49',
+    url: 'https://worldofkarma360.myshopify.com/products/one-piece-swimsuit'
+  },
+  {
+    name: 'WC-SportsBra',
+    img: '/products/branded-sportsbra-23.png',
+    price: '$37.50',
+    url: 'https://worldofkarma360.myshopify.com/products/padded-sports-bra'
+  },
+  {
+    name: 'WC-Hoodie',
+    img: '/products/branded-hoodie-savage-1.png',
+    price: '$48.00',
+    url: 'https://worldofkarma360.myshopify.com/products/premium-eco-hoodie'
+  },
+  {
+    name: 'WC-Slides',
+    img: '/products/branded-mens-slides.png',
+    price: '$34.50',
+    url: 'https://worldofkarma360.myshopify.com/products/men-s-slides'
   }
-})
-
-function goToShopify() {
-  if (product.value) {
-    window.open(product.value.url, '_blank')
-  }
-}
+]
 </script>
 
 <style scoped>
@@ -80,48 +98,62 @@ function goToShopify() {
 
 .shop-page-title {
   font-size: 2rem;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
-.product-details {
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.product-card {
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  text-align: center;
+  transition: transform 0.3s ease;
 }
 
-.shop-product-image {
-  width: 300px;
-  height: auto;
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 255, 255, 0.2);
+}
+
+.product-image {
+  width: 100%;
   border-radius: 8px;
   margin-bottom: 16px;
+  object-fit: cover;
 }
 
-.shop-product-name {
-  font-size: 1.5rem;
+.product-name {
+  font-size: 1.2rem;
   margin-bottom: 8px;
 }
 
-.shop-product-price {
-  font-size: 1.25rem;
-  margin-bottom: 16px;
+.product-price {
+  font-size: 1rem;
+  margin-bottom: 12px;
 }
 
-.shop-product-buy {
+.product-buy {
   background-color: #00ffff;
   color: #0d0d0d;
-  padding: 12px 24px;
+  padding: 10px 20px;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: bold;
-  cursor: pointer;
+  text-decoration: none;
   transition: background-color 0.2s ease;
 }
 
-.shop-product-buy:hover {
+.product-buy:hover {
   background-color: #00d4d4;
-}
-
-.shop-loading {
-  font-size: 1.25rem;
 }
 </style>

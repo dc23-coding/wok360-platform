@@ -2,7 +2,7 @@
   <div
     :class="[
       'min-h-screen flex flex-col relative overflow-hidden',
-      theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'
+      theme === 'dark' ? 'bg-gray-900 text-gray-800' : 'bg-gray-100 text-gray-800'
     ]"
   >
     <!-- All UI content -->
@@ -16,7 +16,7 @@
           class="px-3 py-1 rounded font-semibold transition-colors duration-200"
           :class="[
             $route.path === link.path
-              ? (theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
+              ? (theme === 'dark' ? 'bg-blue-600 text-gray-800' : 'bg-blue-500 text-gray-800')
               : (theme === 'dark'
                   ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                   : 'bg-gray-200 text-gray-800 hover:bg-gray-300')
@@ -54,18 +54,24 @@
               class="px-4 py-2 rounded font-medium transition"
               :class="[
                 walletAddress
-                  ? (theme === 'dark' ? 'bg-red-600 text-white border-red-600 hover:bg-red-700' : 'bg-red-100 text-red-700 border-red-500 hover:bg-red-200')
+                  ? (theme === 'dark'
+                      ? 'bg-red-600 text-gray-800 border-red-600 hover:bg-red-700'
+                      : 'bg-red-100 text-red-700 border-red-500 hover:bg-red-200')
                   : isConnecting
-                  ? 'opacity-50 cursor-not-allowed ' + (theme === 'dark' ? 'bg-gray-700 text-gray-300 border-gray-600' : 'bg-gray-200 text-gray-600 border-gray-300')
-                  : (theme === 'dark' ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700' : 'bg-blue-100 text-blue-700 border-blue-500 hover:bg-blue-200')
+                    ? 'opacity-50 cursor-not-allowed ' + (theme === 'dark'
+                        ? 'bg-gray-700 text-gray-300 border-gray-600'
+                        : 'bg-gray-200 text-gray-600 border-gray-300')
+                    : (theme === 'dark'
+                        ? 'bg-blue-600 text-gray-800 border-blue-600 hover:bg-blue-700'
+                        : 'bg-blue-100 text-blue-700 border-blue-500 hover:bg-blue-200')
               ]"
             >
               {{
                 walletAddress
                   ? 'Disconnect'
                   : isConnecting
-                  ? 'Connecting…'
-                  : 'Connect MetaMask'
+                    ? 'Connecting…'
+                    : 'Connect MetaMask'
               }}
             </button>
             <button
@@ -73,15 +79,23 @@
               @click="mintNFT"
               class="px-4 py-2 rounded font-medium transition"
               :class="theme === 'dark'
-                ? 'bg-green-600 text-white border-green-600 hover:bg-green-700'
+                ? 'bg-green-600 text-gray-800 border-green-600 hover:bg-green-700'
                 : 'bg-green-100 text-green-700 border-green-500 hover:bg-green-200'"
             >
               Mint Reward NFT
             </button>
           </div>
-          <p v-if="walletAddress" class="text-sm break-words">
-            {{ walletAddress }}
-          </p>
+
+          <!-- Display wallet address in its own styled box -->
+          <div v-if="walletAddress" class="mt-2 p-3 rounded-lg border transition"
+            :class="theme === 'dark'
+              ? 'bg-gray-700 border-gray-600 text-gray-100'
+              : 'bg-gray-50 border-gray-300 text-gray-800'"
+          >
+            <span class="font-medium">Wallet Address:</span>
+            <p class="break-words mt-1">{{ walletAddress }}</p>
+          </div>
+
           <p v-else-if="walletError" class="text-sm text-red-500">
             {{ walletError }}
           </p>
@@ -110,26 +124,33 @@
         <section class="mb-4">
           <div class="grid gap-4 grid-cols-1 sm:grid-cols-2">
             <div
-              v-for="game in games"
-              :key="game.id"
-              @click="selectGame(game)"
-              class="rounded-lg p-4 text-center cursor-pointer transform transition hover:scale-[1.02] font-medium"
-              :class="[
-                activeGame?.id === game.id
-                  ? (theme === 'dark' ? 'bg-blue-700 text-white border-blue-700 ring-2 ring-blue-400' : 'bg-blue-100 text-blue-800 border-blue-500 ring-2 ring-blue-300')
-                  : (theme === 'dark' ? 'bg-gray-700 text-gray-200 border-gray-600 hover:bg-gray-600' : 'bg-gray-50 text-gray-800 border-gray-300 hover:bg-gray-100')
-              ]"
-            >
-              {{ game.name }}
-            </div>
+                v-for="game in games"
+                :key="game.id"
+                @click="selectGame(game)"
+                class="rounded-lg p-4 text-center cursor-pointer transform transition hover:scale-[1.02] font-medium border"
+                :class="[
+                  activeGame?.id === game.id
+                    ? (theme === 'dark'
+                        ? 'bg-blue-700 text-gray-800 border-blue-700 ring-2 ring-blue-400'
+                        : 'bg-blue-100 text-blue-800 border-blue-500 ring-2 ring-blue-300')
+                    : (theme === 'dark'
+                        ? 'bg-gray-700 text-gray-200 border-gray-600 hover:bg-gray-600'
+                        : 'bg-gray-50 text-gray-800 border-gray-300 hover:bg-gray-100')
+                ]"
+              >
+                {{ game.name }}
+              </div>
+
           </div>
         </section>
 
         <!-- Selected Game Embed -->
         <div v-if="activeGame">
           <div
-            class="rounded-lg p-4"
-            :class="theme === 'dark' ? 'bg-gray-700 border border-gray-600' : 'bg-gray-100 border border-gray-300'"
+            class="rounded-lg p-4 text-gray-900"
+            :class="theme === 'dark'
+              ? 'bg-gray-700 border border-gray-600 text-gray-800'
+              : 'bg-gray-100 border border-gray-300 text-gray-900'"
           >
             <PuzzledGame
               v-if="activeGame.id === 'puzzled'"
@@ -147,7 +168,13 @@
               v-else-if="activeGame.id === 'fortune'"
               @win="handleGameWin"
             />
-            <div v-else class="text-center font-medium" :class="theme === 'dark' ? 'text-gray-300' : 'text-gray-600'">
+            <div
+              v-else
+              class="text-center font-medium"
+              :class="theme === 'dark'
+                ? 'text-gray-300'
+                : 'text-gray-600'"
+            >
               Game “{{ activeGame.name }}” coming soon!
             </div>
           </div>
@@ -160,7 +187,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { ethers } from 'ethers';
-import { useRoute } from 'vue-router';
 import PuzzledGame from '@/components/PuzzledGame.vue';
 import TriviaGame from '@/components/TriviaGame.vue';
 import FortuneGame from '@/components/FortuneGame.vue';
@@ -226,8 +252,8 @@ const connectMetaMask = async () => {
   }
   try {
     isConnecting.value = true;
-    const provider = new ethers.BrowserProvider((window as any).ethereum);
-    const accounts: string[] = await provider.send('eth_requestAccounts', []);
+    // Use window.ethereum.request if BrowserProvider fails
+    const accounts: string[] = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
     walletAddress.value = accounts[0];
     walletError.value = null;
   } catch {

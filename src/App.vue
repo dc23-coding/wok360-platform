@@ -8,12 +8,14 @@
 
     <!-- App Router Content -->
     <RouterView />
+    <GlobalUserNav />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { RouterView } from 'vue-router'
+import GlobalUserNav from '@/components/GlobalUserNav.vue'
 
 
 const currentTheme = ref('dark')

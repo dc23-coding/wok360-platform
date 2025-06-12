@@ -1,22 +1,21 @@
+// main.ts
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
-import router from '@/router';
+// Make sure the router file exists at the specified path
+import router from './/router'; // use relative path if @ alias is not configured
 import App from './App.vue';
 import './index.css';
 
 const app = createApp(App);
 
-/* ------------ Router ------------ */
-app.use(router);
-
-/* ------------ tsParticles ------------ */
-
-  /* You can pass defaultOptions here later if desired */
-
-
-// ✅ Create Pinia instance and use it
+// ✅ Install Pinia before mounting
 const pinia = createPinia();
 app.use(pinia);
 
-/* ------------ Mount ------------ */
+// ✅ Install router
+app.use(router);
+
+// ✅ tsParticles init can go here if needed (currently omitted)
+
+// ✅ Mount the app
 app.mount('#app');

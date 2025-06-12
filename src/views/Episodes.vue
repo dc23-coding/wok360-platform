@@ -124,7 +124,7 @@ interface Podcast {
 
 // Navigation links (left orbs)
 const navLinks = [
-  { name: 'Home', path: '/home' },
+  { name: 'Home', path: '/' },
   { name: 'Episodes', path: '/episodes' },
   { name: 'Music', path: '/music' },
   { name: 'Games', path: '/games' },
