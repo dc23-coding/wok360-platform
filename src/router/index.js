@@ -18,6 +18,7 @@ const routes = [
   { path: '/music', name: 'Music', component: Music },
   { path: '/games', name: 'Games', component: Games },
   { path: '/shop/:index', name: 'shop-item', component: ShopPage },
+  { path: '/rewards', name: 'Rewards', component: () => import('@/views/RewardsHistory.vue'), }
 ]
 
 const router = createRouter({

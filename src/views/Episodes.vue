@@ -170,30 +170,7 @@ const episodes = ref<Episode[]>([
   },
 ])
 
-// Podcast episodes
-const podcasts = ref<Podcast[]>([
-  {
-    id: 1,
-    type: 'podcast',
-    title: 'Episode 1',
-    description: 'Discussion on current events.',
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-  },
-  {
-    id: 2,
-    type: 'podcast',
-    title: 'Episode 2',
-    description: 'Deep dive into finance.',
-    videoUrl: 'https://www.youtube.com/embed/9bZkp7q19f0',
-  },
-  {
-    id: 3,
-    type: 'podcast',
-    title: 'Episode 3',
-    description: 'Debate on technology trends.',
-    videoUrl: 'https://www.youtube.com/embed/kXYiU_JCYtU',
-  },
-])
+
 
 // Video player state
 const activeContent = ref<Episode | Podcast | null>(null)
