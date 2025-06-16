@@ -75,6 +75,11 @@
       </a>
     </div>
 
+    <div class="bg-indigo-50 border border-indigo-200 text-indigo-800 text-center rounded-lg py-3 px-5 mt-10 mx-auto max-w-xl shadow-sm">
+  🎵 <strong>This is a free service.</strong> Rewards, artist credits, and exclusive merch drops are coming soon!
+     </div>
+
+
     <!-- Footer -->
     <footer>
       <p>&copy; 2025 WOK 360. All Rights Reserved.</p>

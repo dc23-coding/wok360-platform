@@ -156,6 +156,8 @@ const submitGuess = () => {
     const letter = currentGuess.value[i]
     usedLetters.value[letter] = getCellClass(currentRow.value, i)
   }
+
+  
   
 
   if (currentGuess.value === targetWord.value) {

@@ -124,6 +124,17 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/useAuthStore'
+
+// Explicitly type user to avoid 'never' type error
+const user = ref<any>(null)
+onMounted(async () => {
+  const { data } = await supabase.auth.getUser()
+  user.value = data.user
+})
+
+
 
 // 1) Navigation links (left-side orbs)
 const navLinks = [
@@ -145,6 +156,7 @@ const playlist = ref<Song[]>([
   { id: 4, title: 'Why Not',             src: '/audio/Why-Not.mp3' },
   { id: 5, title: 'On Me',               src: '/audio/murder1.mp3' }
 ])
+
 
 // 3) Beats for user to choose (placeholders)
 interface Beat {
@@ -171,14 +183,32 @@ const beatDuration = ref(0)
 const beatCurrentTime = ref(0)
 let beatTimeUpdateInterval: number | null = null
 
-const toggleBeatPlayback = () => {
-  if (!beatAudio.value) return
+const toggleBeatPlayback = async () => {
+  if (!beatAudio.value || !currentBeat.value) return
+
   if (isBeatPlaying.value) {
     beatAudio.value.pause()
   } else {
     beatAudio.value.play()
+
+    // ✅ Log play to Supabase
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      try {
+        await supabase.from('music_history').insert({
+          user_id: user.id,
+          track_id: currentBeat.value.id.toString(),
+          track_name: currentBeat.value.title,
+          played_at: new Date()
+        })
+      } catch (err) {
+        console.error('Error logging music history:', err)
+      }
+    }
   }
 }
+
+
 
 const onBeatPlay = () => {
   isBeatPlaying.value = true

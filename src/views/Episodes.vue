@@ -170,6 +170,31 @@ const episodes = ref<Episode[]>([
   },
 ])
 
+// Podcasts (for podcast orbs and podcast section)
+const podcasts = ref<Podcast[]>([
+  {
+    id: 101,
+    type: 'podcast',
+    title: 'KarmaCast #1',
+    description: 'The debut episode of KarmaCast, diving into the world of karma.',
+    videoUrl: 'https://www.youtube.com/embed/abc123def456',
+  },
+  {
+    id: 102,
+    type: 'podcast',
+    title: 'KarmaCast #2',
+    description: 'Exploring blockchain and its impact on society.',
+    videoUrl: 'https://www.youtube.com/embed/def456ghi789',
+  },
+  {
+    id: 103,
+    type: 'podcast',
+    title: 'KarmaCast #3',
+    description: 'Investing in the future: tips and tricks.',
+    videoUrl: 'https://www.youtube.com/embed/ghi789jkl012',
+  },
+])
+
 
 
 // Video player state
