@@ -86,6 +86,31 @@
           </div>
         </div>
 
+        <!-- 🎵 Beat Controls -->
+<div class="flex gap-2 items-center mt-4">
+  <button @click="toggleBeatPlayback">
+    {{ isBeatPlaying ? 'Pause' : 'Play' }} Beat
+  </button>
+  <button @click="restartBeat">Restart</button>
+  <button @click="stopBeat">Stop</button>
+</div>
+
+        <!-- 🔊 Hidden audio element for beat -->
+        <audio
+          ref="beatAudio"
+          @play="onBeatPlay"
+          @pause="onBeatPauseOrEnd"
+          @ended="onBeatPauseOrEnd"
+          class="hidden"
+        />
+
+        <!-- 🎤 Recorded Audio Preview -->
+        <div v-if="recordedAudioURL" class="mt-6">
+          <p class="font-bold mb-1">Your Recording:</p>
+          <audio :src="recordedAudioURL" controls class="w-full" />
+        </div>
+
+
         <!-- Recording Controls -->
         <div class="section">
           <h2 class="section-title">Record Your Audio</h2>
@@ -126,6 +151,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { v4 as uuidv4 } from 'uuid'
 
 // Explicitly type user to avoid 'never' type error
 const user = ref<any>(null)
@@ -165,9 +191,9 @@ interface Beat {
   src: string
 }
 const beats = ref<Beat[]>([
-  { id: 1, title: 'Placeholder Beat 1', src: '/audio/placeholder1.mp3' },
-  { id: 2, title: 'Placeholder Beat 2', src: '/audio/placeholder2.mp3' },
-  { id: 3, title: 'Placeholder Beat 3', src: '/audio/placeholder3.mp3' }
+  { id: 1, title: 'Show Boat', src: '/audio/Show-Boat.mp3' },
+  { id: 2, title: 'Tough', src: '/audio/Tough.mp3' },
+  { id: 3, title: 'Murderous', src: '/audio/Murderous.mp3' }
 ])
 
 // 4) Beat selection state
@@ -227,6 +253,23 @@ const onBeatPauseOrEnd = () => {
   }
 }
 
+const restartBeat = () => {
+  if (beatAudio.value) {
+    beatAudio.value.currentTime = 0
+    beatAudio.value.play()
+    isBeatPlaying.value = true
+  }
+}
+
+const stopBeat = () => {
+  if (beatAudio.value) {
+    beatAudio.value.pause()
+    beatAudio.value.currentTime = 0
+    isBeatPlaying.value = false
+  }
+}
+
+
 // When the user picks a new beat, load its metadata
 watch(
   currentBeat,
@@ -271,11 +314,78 @@ const startRecording = async () => {
       }
     }
 
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(recordedChunks.value, { type: 'audio/webm' })
-      recordedAudioURL.value = URL.createObjectURL(blob)
-      // TODO: upload `blob` to Supabase Storage or external CDN here
-    }
+   mediaRecorder.onstop = async () => {
+  const blob = new Blob(recordedChunks.value, { type: 'audio/webm' });
+  recordedAudioURL.value = URL.createObjectURL(blob);
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('No user logged in')
+
+    const fileName = `recordings/${user.id}_${Date.now()}.webm`
+
+    
+
+const uploadRecordingToSupabase = async (blob: Blob) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    console.error('User not logged in')
+    return
+  }
+
+  const filename = `recording-${uuidv4()}.webm`
+  const { data, error } = await supabase.storage
+    .from('user-recordings')
+    .upload(filename, blob, {
+      contentType: 'audio/webm'
+    })
+
+  if (error) {
+    console.error('Upload error:', error)
+    return
+  }
+
+  const publicURL = supabase.storage
+    .from('user-recordings')
+    .getPublicUrl(filename).data.publicUrl
+
+  await supabase.from('recordings').insert({
+    user_id: user.id,
+    beat_id: currentBeat.value?.id || null,
+    beat_title: currentBeat.value?.title || '',
+    recording_url: publicURL
+  })
+
+  console.log('Recording uploaded & saved.')
+}
+
+
+    // Upload the file to Supabase Storage
+    const { data, error: uploadError } = await supabase.storage
+      .from('recordings')
+      .upload(fileName, blob)
+
+    if (uploadError) throw uploadError
+
+    const { data: publicUrlData } = supabase
+      .storage
+      .from('recordings')
+      .getPublicUrl(fileName)
+
+    // Save reference to `user_recordings` table
+    await supabase.from('user_recordings').insert({
+      user_id: user.id,
+      beat_id: currentBeat.value?.id || null,
+      recording_url: publicUrlData.publicUrl
+    })
+
+    console.log('Recording saved successfully.')
+
+  } catch (err) {
+    console.error('Failed to save recording:', err)
+  }
+}
+
 
     mediaRecorder.start()
     isRecording.value = true
